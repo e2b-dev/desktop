@@ -15,9 +15,9 @@ from e2b_desktop import Sandbox
 #   sandbox.screenshot(screenshot_path)
 #   assert os.path.exists(screenshot_path)
 
-# def test_get_cursor_position(sandbox: Sandbox):
-#   pos = sandbox.get_cursor_position()
-#   assert pos == (512, 384) # In the middle of the screen
+def test_get_cursor_position(sandbox: Sandbox):
+  pos = sandbox.get_cursor_position()
+  assert pos == (512, 384) # In the middle of the screen
 
 
 # def test_get_screen_size(sandbox: Sandbox):
