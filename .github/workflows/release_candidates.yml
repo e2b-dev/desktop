@@ -39,14 +39,14 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Test JS SDK
-        working-directory: js
+        working-directory: ./packages/js-sdk
         run: |
           pnpm run test
         env:
           E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
 
       - name: Release JS Candidate
-        working-directory: js
+        working-directory: ./packages/js-sdk
         run: |
           npm publish --tag beta
         env:
@@ -66,7 +66,7 @@ jobs:
           installer-parallel: true
 
       - name: Test Python SDK
-        working-directory: python
+        working-directory: ./packages/python-sdk
         run: |
           poetry install
           poetry run pytest -n 4 --verbose -x
@@ -74,7 +74,7 @@ jobs:
           E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
 
       - name: Release Candidate
-        working-directory: python
+        working-directory: ./packages/python-sdk
         run: |
           poetry build
           poetry config pypi-token.pypi ${PYPI_TOKEN} && poetry publish --skip-existing
