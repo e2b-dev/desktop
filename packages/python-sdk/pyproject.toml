@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "e2b-desktop"
-version = "1.0.2"
+version = "1.1.0b0"
 description = "E2B Desktop Sandbox - Deskstop sandbox in cloud powered by E2B"
 authors = ["e2b <hello@e2b.dev>"]
 license = "Apache-2.0"
@@ -12,7 +12,7 @@ packages = [{ include = "e2b_desktop" }]
 [tool.poetry.dependencies]
 python = "^3.9"
 
-e2b = "^1.0.4"
+e2b = "^1.1.0b17"
 requests = "^2.32.3"
 
 [tool.poetry.group.dev.dependencies]
