@@ -48,7 +48,7 @@ jobs:
       - name: Release JS Candidate
         working-directory: ./packages/js-sdk
         run: |
-          npm publish --tag beta
+          npm publish --tag beta || exit 0
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
