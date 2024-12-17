@@ -48,7 +48,6 @@ jobs:
       - name: Release JS Candidate
         working-directory: js
         run: |
-#          npm version prerelease --preid=beta
           npm publish --tag beta
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -77,7 +76,6 @@ jobs:
       - name: Release Candidate
         working-directory: python
         run: |
-#          poetry version prerelease
           poetry build
           poetry config pypi-token.pypi ${PYPI_TOKEN} && poetry publish --skip-existing
         env:
