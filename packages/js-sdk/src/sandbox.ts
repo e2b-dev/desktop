@@ -91,13 +91,17 @@ export class Sandbox extends SandboxBase {
 
     const config = new ConnectionConfig(sandboxOpts)
 
-    const sandboxId = config.debug
-      ? 'debug_sandbox_id'
-      : await this.createSandbox(
-        template,
-        sandboxOpts?.timeoutMs ?? this.defaultSandboxTimeoutMs,
-        sandboxOpts
+    let sandboxId: string
+    if (config.debug) {
+      sandboxId = 'debug_sandbox_id'
+    } else {
+      const sandboxInfo = await this.createSandbox(
+          template,
+          sandboxOpts?.timeoutMs ?? this.defaultSandboxTimeoutMs,
+          sandboxOpts
       )
+      sandboxId = sandboxInfo.sandboxId
+    }
 
     const sbx = new this({ sandboxId, ...config }) as InstanceType<S>
 
