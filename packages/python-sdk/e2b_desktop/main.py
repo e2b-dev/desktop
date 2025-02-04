@@ -1,90 +1,82 @@
-import uuid
-from typing import Literal, Iterator, overload
+import os
+from re import search as re_search
+from shlex import quote as quote_string
+from typing import Dict, Iterator, Literal, Optional, overload, Tuple
+from uuid import uuid4
 
-from typing import Callable, Optional
 from e2b import Sandbox as SandboxBase
-import requests
 
 
-class Sandbox(SandboxBase):
-    default_template = "desktop"
-    stream_base_url = "https://e2b.dev"
+class Desktop(SandboxBase):
+    default_template = "ubuntu-desktop"
 
-    @staticmethod
-    def start_video_stream(sandbox: "Sandbox", api_key: str, sandbox_id: str):
-
-        # First we need to get the stream key
-        response = requests.post(
-            f"{Sandbox.stream_base_url}/api/stream/sandbox",
-            headers={
-                "Content-Type": "application/json",
-                "X-API-Key": api_key,
-            },
-            json={"sandboxId": sandbox_id},
-        )
-
-        if not response.ok:
-            raise Exception(
-                f"Failed to start video stream {response.status_code}: {response.text}"
-            )
-
-        data = response.json()
-        sandbox.video_stream_token = data["token"]
-        command = (
-            "ffmpeg -video_size 1024x768 -f x11grab -i :99 -c:v libx264 -c:a aac -g 50 "
-            "-b:v 4000k -maxrate 4000k -bufsize 8000k -f flv rtmp://global-live.mux.com:5222/app/$STREAM_KEY"
-        )
-        sandbox.commands.run(
-            command,
-            background=True,
-            envs={"STREAM_KEY": data["streamKey"]},
-        )
-
-    def __init__(self, *args, video_stream=False, **kwargs):
-        super().__init__(*args, **kwargs)
-        if not self._connection_config.api_key:
-            raise ValueError("API key is required")
-
-        if video_stream:
-            self.start_video_stream(
-                self,
-                self._connection_config.api_key,
-                self.sandbox_id,
-            )
-
-    def get_video_stream_url(self):
+    def __init__(
+        self,
+        resolution: Optional[Tuple[int, int]] = None, 
+        dpi: Optional[int] = None,
+        shared_vnc: bool = False,
+        template: Optional[str] = None,
+        timeout: Optional[int] = None,
+        metadata: Optional[Dict[str, str]] = None,
+        envs: Optional[Dict[str, str]] = None,
+        api_key: Optional[str] = None,
+        domain: Optional[str] = None,
+        debug: Optional[bool] = None,
+        sandbox_id: Optional[str] = None,
+        request_timeout: Optional[float] = None,
+    ):
         """
-        Get the video stream URL.
-        """
-        # We already have the token
-        if hasattr(self, "video_stream_token") and self.video_stream_token:
-            return f"{self.stream_base_url}/stream/sandbox/{self.sandbox_id}?token={self.video_stream_token}"
+        Create a new desktop sandbox.
 
-        # In cases like when a user reconnects to the sandbox, we don't have the token yet and need to get it from the server
-        response = requests.get(
-            f"{self.stream_base_url}/api/stream/sandbox/{self.sandbox_id}",
-            headers={
-                "Content-Type": "application/json",
-                "X-API-Key": self._connection_config.api_key,
-            },
+        By default, the sandbox is created from the `ubuntu-desktop` template.
+
+        :param resolution: Startup the desktop with custom resolution. Defaults to (1024, 768)
+        :param dpi: Startup the desktop with custom DPI. Defaults to 96
+        :param shared_vnc: If True, VNC server can be connected from multiple clients. Defaults to False
+        :param template: Sandbox template name or ID
+        :param timeout: Timeout for the sandbox in **seconds**, default to 300 seconds. Maximum time a sandbox can be kept alive is 24 hours (86_400 seconds) for Pro users and 1 hour (3_600 seconds) for Hobby users
+        :param metadata: Custom metadata for the sandbox
+        :param envs: Custom environment variables for the sandbox
+        :param api_key: E2B API Key to use for authentication, defaults to `E2B_API_KEY` environment variable
+        :param domain: E2B domain to use for authentication, defaults to `E2B_DOMAIN` environment variable
+        :param debug: If True, the sandbox will be created in debug mode, defaults to `E2B_DEBUG` environment variable
+        :param sandbox_id: Sandbox ID to connect to, defaults to `E2B_SANDBOX_ID` environment variable
+        :param request_timeout: Timeout for the request in **seconds**
+
+        :return: sandbox instance for the new sandbox
+        """
+        envs = envs or {}
+        resolution = resolution or (1024, 768)
+        envs.update({
+            "DISPLAY": ":0",
+            "WIDTH": str(resolution[0]),
+            "HEIGHT": str(resolution[1]),
+            "DPI": str(dpi or 96),
+            "VNC_PASSWORD": api_key or os.getenv("E2B_API_KEY", ""),
+            "SHARED_VNC": "1" if shared_vnc else "0"
+        })
+        super().__init__(
+            template=template,
+            timeout=timeout,
+            metadata=metadata,
+            envs=envs,
+            api_key=api_key,
+            domain=domain,
+            debug=debug,
+            sandbox_id=sandbox_id,
+            request_timeout=request_timeout,
         )
 
-        if not response.ok:
-            raise Exception(
-                f"Failed to get stream token: {response.status_code} {response.reason}"
-            )
-
-        data = response.json()
-        self.video_stream_token = data["token"]
-
-        return f"{self.stream_base_url}/stream/sandbox/{self.sandbox_id}?token={self.video_stream_token}"
+    @property
+    def vnc_url(self) -> Optional[str]:
+        """Get the vnc url"""
+        return f"https://{self.get_host(6080)}/vnc.html"
 
     @overload
     def take_screenshot(self, format: Literal["stream"]) -> Iterator[bytes]:
         """
         Take a screenshot and return it as a stream of bytes.
         """
-        ...
 
     @overload
     def take_screenshot(
@@ -94,7 +86,6 @@ class Sandbox(SandboxBase):
         """
         Take a screenshot and return it as a bytearray.
         """
-        ...
 
     def take_screenshot(
         self,
@@ -102,14 +93,13 @@ class Sandbox(SandboxBase):
     ):
         """
         Take a screenshot and return it in the specified format.
+
         :param format: The format of the screenshot. Can be 'bytes', 'blob', or 'stream'.
         :returns: The screenshot in the specified format.
         """
-        screenshot_path = f"/tmp/screenshot-{uuid.uuid4()}.png"
+        screenshot_path = f"/tmp/screenshot-{uuid4()}.png"
 
-        self.commands.run(
-            f"scrot --pointer {screenshot_path}",
-        )
+        self.commands.run(f"scrot --pointer {screenshot_path}", envs={"DISPLAY": ":0"})
 
         file = self.files.read(screenshot_path, format=format)
         self.files.remove(screenshot_path)
@@ -119,133 +109,117 @@ class Sandbox(SandboxBase):
         """
         Left click on the current mouse position.
         """
-        return self.pyautogui("pyautogui.click()")
+        self.commands.run("xdotool click 1", envs={"DISPLAY": ":0"})
 
     def double_click(self):
         """
         Double left click on the current mouse position.
         """
-        return self.pyautogui("pyautogui.doubleClick()")
+        self.commands.run("xdotool click --repeat 2 1", envs={"DISPLAY": ":0"})
 
     def right_click(self):
         """
         Right click on the current mouse position.
         """
-        return self.pyautogui("pyautogui.rightClick()")
+        self.commands.run("xdotool click 3", envs={"DISPLAY": ":0"})
 
     def middle_click(self):
         """
         Middle click on the current mouse position.
         """
-        return self.pyautogui("pyautogui.middleClick()")
+        self.commands.run("xdotool click 2", envs={"DISPLAY": ":0"})
 
-    def scroll(self, amount: int):
+    def scroll(self, direction: Literal["up", "down"] = "down", amount: int = 1):
         """
         Scroll the mouse wheel by the given amount.
+
+        :param direction: The direction to scroll. Can be "up" or "down".
         :param amount: The amount to scroll.
         """
-        return self.pyautogui(f"pyautogui.scroll({amount})")
+        self.commands.run(
+            f"xdotool click --repeat {amount} {'4' if direction == 'up' else '5'}",
+            envs={"DISPLAY": ":0"}
+        )
 
     def move_mouse(self, x: int, y: int):
         """
         Move the mouse to the given coordinates.
+        
         :param x: The x coordinate.
         :param y: The y coordinate.
         """
-        return self.pyautogui(f"pyautogui.moveTo({x}, {y})")
+        self.commands.run(f"xdotool mousemove --sync {x} {y}", envs={"DISPLAY": ":0"})
 
-    def get_cursor_position(self):
+    def get_cursor_position(self) -> Optional[tuple[int, int]]:
         """
         Get the current cursor position.
-        :return: A tuple with the x and y coordinates.
-        """
-        # We save the value to a file because stdout contains warnings about Xauthority.
-        self.pyautogui(
-            """
-x, y = pyautogui.position()
-with open("/tmp/cursor_position.txt", "w") as f:
-    f.write(str(x) + " " + str(y))
-"""
-        )
-        # pos is like this: 100 200
-        pos = self.files.read("/tmp/cursor_position.txt")
-        return tuple(map(int, pos.split(" ")))
 
-    def get_screen_size(self):
+        :return: A tuple with the x and y coordinates or None if the cursor is not visible.
+        """
+        result = self.commands.run("xdotool getmouselocation", envs={"DISPLAY": ":0"})
+        if output := result.stdout:
+            if groups := re_search( r"x:(\d+)\s+y:(\d+)", output):
+                x, y = groups.group(1), groups.group(2)
+                if x and y:
+                    return int(x), int(y)
+        
+    def get_screen_size(self) -> Optional[tuple[int, int]]:
         """
         Get the current screen size.
-        :return: A tuple with the width and height.
-        """
-        # We save the value to a file because stdout contains warnings about Xauthority.
-        self.pyautogui(
-            """
-width, height = pyautogui.size()
-with open("/tmp/size.txt", "w") as f:
-    f.write(str(width) + " " + str(height))
-"""
-        )
-        # size is like this: 100 200
-        size = self.files.read("/tmp/size.txt")
-        return tuple(map(int, size.split(" ")))
 
-    def write(self, text: str):
+        :return: A tuple with the width and height or None if the screen size is not visible.
+        """
+        result = self.commands.run("xrandr", envs={"DISPLAY": ":0"})
+        if output := result.stdout:
+            _match = re_search(r"(\d+x\d+)", output)
+            if _match:
+                return tuple(map(int, _match.group(1).split("x")))  # type: ignore
+
+    def write(self,        
+        text: str,
+        *,
+        chunk_size: int = 25,
+        delay_in_ms: int = 75
+    ) -> None:
         """
         Write the given text at the current cursor position.
+        
         :param text: The text to write.
+        :param chunk_size: The size of each chunk of text to write.
+        :param delay_in_ms: The delay between each chunk of text.
         """
-        return self.pyautogui(f"pyautogui.write({text!r})")
+        def break_into_chunks(text: str, n: int):
+            for i in range(0, len(text), n):
+                yield text[i : i + n]
+
+        for chunk in break_into_chunks(text, chunk_size):
+            self.commands.run(
+                f"xdotool type --delay {delay_in_ms} {quote_string(chunk)}", envs={"DISPLAY": ":0"}
+            )
 
     def press(self, key: str):
         """
         Press a key.
+
         :param key: The key to press (e.g. "enter", "space", "backspace", etc.).
         """
-        return self.pyautogui(f"pyautogui.press({key!r})")
+        self.commands.run(f"xdotool key {key}", envs={"DISPLAY": ":0"})
 
-    def hotkey(self, *keys):
+    def hotkey(self, key: str):
         """
         Press a hotkey.
-        :param keys: The keys to press (e.g. `hotkey("ctrl", "c")` will press Ctrl+C).
+
+        :param keys: The key to press (e.g. "ctrl+c").
         """
-        return self.pyautogui(f"pyautogui.hotkey({keys!r})")
+        self.press(key)
 
     def open(self, file_or_url: str):
         """
         Open a file or a URL in the default application.
+
         :param file_or_url: The file or URL to open.
         """
-        return self.commands.run(f"xdg-open {file_or_url}", background=True)
+        self.commands.run(f"xdg-open {file_or_url}", background=True, envs={"DISPLAY": ":0"})
 
-    @staticmethod
-    def _wrap_pyautogui_code(code: str):
-        return f"""
-import pyautogui
-import os
-import Xlib.display
 
-display = Xlib.display.Display(os.environ["DISPLAY"])
-pyautogui._pyautogui_x11._display = display
-
-{code}
-exit(0)
-"""
-
-    def pyautogui(
-        self,
-        pyautogui_code: str,
-        on_stdout: Optional[Callable[[str], None]] = None,
-        on_stderr: Optional[Callable[[str], None]] = None,
-    ):
-        code_path = f"/tmp/code-{uuid.uuid4()}.py"
-
-        code = self._wrap_pyautogui_code(pyautogui_code)
-
-        self.files.write(code_path, code)
-
-        out = self.commands.run(
-            f"python {code_path}",
-            on_stdout=on_stdout,
-            on_stderr=on_stderr,
-        )
-        self.files.remove(code_path)
-        return out
+Sandbox = Desktop

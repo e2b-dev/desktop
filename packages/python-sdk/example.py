@@ -2,16 +2,15 @@ import time
 import random
 
 from dotenv import load_dotenv
-from e2b_desktop import Sandbox
+from e2b_desktop import Desktop
 
 load_dotenv()
 
 print("Starting desktop sandbox...")
-desktop = Sandbox(
-    video_stream=True,
-)
-stream_url = desktop.get_video_stream_url()
-print("Video stream URL:", stream_url)
+desktop = Desktop()
+
+print("VNC URL:", desktop.vnc_url)
+input("Press enter to continue...")
 print("Desktop Sandbox started, ID:", desktop.sandbox_id)
 
 screenshot = desktop.take_screenshot(format="bytes")
@@ -21,10 +20,6 @@ with open("1.png", "wb") as f:
 print("Moving mouse to 'Applications' and clicking...")
 desktop.move_mouse(100, 100)
 desktop.left_click()
-desktop.commands.run(
-    cmd="code /home/user",
-    background=True,
-)
 
 time.sleep(1)
 screenshot = desktop.take_screenshot(format="bytes")
