@@ -91,18 +91,21 @@ export class Sandbox extends SandboxBase {
 
     const config = new ConnectionConfig(sandboxOpts)
 
-    const sandboxId = config.debug
-      ? 'debug_sandbox_id'
-      : await this.createSandbox(
-        template,
-        sandboxOpts?.timeoutMs ?? this.defaultSandboxTimeoutMs,
-        sandboxOpts
+    let sbx
+    if (config.debug) {
+      sbx = new this({ sandboxId: 'debug_sandbox_id', ...config }) as InstanceType<S>
+    } else {
+      const sandbox = await this.createSandbox(
+          template,
+          sandboxOpts?.timeoutMs ?? this.defaultSandboxTimeoutMs,
+          sandboxOpts
       )
+      sbx = new this({ ...sandbox, ...config }) as InstanceType<S>
+    }
 
-    const sbx = new this({ sandboxId, ...config }) as InstanceType<S>
 
     if (sandboxOpts?.videoStream) {
-      this.startVideoStream(sbx, config.apiKey!, sandboxId, sandboxOpts?.onVideoStreamStart)
+      this.startVideoStream(sbx, config.apiKey!, sbx.sandboxId, sandboxOpts?.onVideoStreamStart)
     }
 
     return sbx
