@@ -1,0 +1,19 @@
+# This is a config for E2B sandbox template.
+# You can use template ID (xrlk1xkhq3q708rhhqjg) or template name (desktop-dev) to create a sandbox:
+
+# Python SDK
+# from e2b import Sandbox, AsyncSandbox
+# sandbox = Sandbox("desktop-dev") # Sync sandbox
+# sandbox = await AsyncSandbox.create("desktop-dev") # Async sandbox
+
+# JS SDK
+# import { Sandbox } from 'e2b'
+# const sandbox = await Sandbox.create('desktop-dev')
+
+template_id = "xrlk1xkhq3q708rhhqjg"
+dockerfile = "e2b.dev.Dockerfile"
+template_name = "desktop-dev"
+start_cmd = "/start-up.dev.sh"
+cpu_count = 4
+memory_mb = 4_096
+team_id = "460355b3-4f64-48f9-9a16-4442817f79f5"
