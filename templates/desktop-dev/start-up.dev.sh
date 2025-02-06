@@ -30,6 +30,25 @@ sleep 5
 : ${VNC_PORT:=5900}
 : ${NOVNC_PORT:=6080}
 
+# [wait_for_port <port> [<timeout>]]
+wait_for_port() {
+    local port=$1
+    local timeout=${2:-10}
+    local start_time=$(date +%s)
+    
+    while true; do
+        if netstat -tuln | grep ":$port "; then
+            return 0
+        fi
+        
+        if [ $(($(date +%s) - start_time)) -gt $timeout ]; then
+            echo "Timeout waiting for port $port after $timeout seconds" >&2
+            return 1
+        fi
+        sleep 1
+    done
+}
+
 start_x11vnc() {
     (x11vnc -display :0 \
         -forever \
@@ -42,14 +61,7 @@ start_x11vnc() {
     x11vnc_pid=$!
 
     # Wait for x11vnc to start
-    timeout=10
-    while [ $timeout -gt 0 ]; do
-        if netstat -tuln | grep ":$VNC_PORT "; then
-            break
-        fi
-        sleep 1
-        ((timeout--))
-    done
+    wait_for_port $VNC_PORT
 
     (
         while true; do
@@ -85,11 +97,4 @@ start_x11vnc
     > /tmp/novnc.log 2>&1 &
 
 # Wait for noVNC to start
-timeout=10
-while [ $timeout -gt 0 ]; do
-    if netstat -tuln | grep ":$NOVNC_PORT "; then
-        break
-    fi
-    sleep 1
-    ((timeout--))
-done
+wait_for_port $NOVNC_PORT
