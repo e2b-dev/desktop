@@ -83,8 +83,3 @@ COPY ./xfce4-desktop.dev.xml /root/.config/xfce4/xfconf/xfce-perchannel-xml/xfce
 
 COPY ./start-up.dev.sh /
 RUN chmod +x /start-up.dev.sh
-
-ENV DPI=96
-ENV WIDTH=1024
-ENV HEIGHT=768
-ENV DISPLAY=:0

@@ -27,13 +27,15 @@ sleep 5
 
 ### --==[ VNC Server ]==--
 
+: ${VNC_PORT:=5900}
+: ${NOVNC_PORT:=6080}
+
 start_x11vnc() {
     (x11vnc -display :0 \
         -forever \
-        $VNC_SHARED_FLAG \
         -wait 50 \
         -shared \
-        -rfbport 5900 \
+        -rfbport $VNC_PORT \
         $VNC_PW_FLAG \
         2>/tmp/x11vnc_stderr.log) &
 
@@ -42,7 +44,7 @@ start_x11vnc() {
     # Wait for x11vnc to start
     timeout=10
     while [ $timeout -gt 0 ]; do
-        if netstat -tuln | grep ":5900 "; then
+        if netstat -tuln | grep ":$VNC_PORT "; then
             break
         fi
         sleep 1
@@ -66,13 +68,6 @@ start_x11vnc() {
     ) &
 }
 
-: ${SHARED:=0}
-
-VNC_SHARED_FLAG=""
-if [ "$SHARED" -ne 0 ]; then
-    VNC_SHARED_FLAG="-shared"
-fi
-
 # Flag to handle authentication
 VNC_PW_FLAG="-nopw"
 if [ -n "$VNC_PASSWORD" ]; then
@@ -84,15 +79,15 @@ fi
 start_x11vnc
 
 /opt/noVNC/utils/novnc_proxy \
-    --vnc localhost:5900 \
-    --listen 6080 \
+    --vnc localhost:$VNC_PORT \
+    --listen $NOVNC_PORT \
     --web /opt/noVNC \
     > /tmp/novnc.log 2>&1 &
 
 # Wait for noVNC to start
 timeout=10
 while [ $timeout -gt 0 ]; do
-    if netstat -tuln | grep ":6080 "; then
+    if netstat -tuln | grep ":$NOVNC_PORT "; then
         break
     fi
     sleep 1
