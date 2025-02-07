@@ -7,12 +7,18 @@ from e2b_desktop import Desktop
 load_dotenv()
 
 print("Starting desktop sandbox...")
-desktop = Desktop(template="desktop-dev") # Use desktop-dev-v2 If you haven't built desktop-dev
+desktop = Desktop(template="desktop-dev", enable_novnc_auth=True) # Use desktop-dev-v2 If you haven't built desktop-dev
 
 desktop.vnc_server.start()
 
 print("VNC URL:", desktop.vnc_server.url)
+print("VNC Password:", desktop.vnc_server.password)
+
 input("Press enter to continue...")
+
+# If you have logged out from the desktop, you can restart the session and vnc server using:
+# desktop.refresh()
+
 print("Desktop Sandbox started, ID:", desktop.sandbox_id)
 
 screenshot = desktop.take_screenshot(format="bytes")

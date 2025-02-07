@@ -1,10 +1,10 @@
 import time
 from re import search as re_search
 from shlex import quote as quote_string
-from typing import Dict, Iterator, Literal, Optional, overload, Tuple
+from typing import Callable, Dict, Iterator, Literal, Optional, overload, Tuple
 from uuid import uuid4
 
-from e2b import Sandbox as SandboxBase, CommandHandle
+from e2b import Sandbox as SandboxBase, CommandHandle, CommandResult
 
 
 class _VNCServer:
@@ -12,12 +12,14 @@ class _VNCServer:
         self.__vnc_handle: CommandHandle | None = None
         self.__novnc_handle: CommandHandle | None = None
 
-        self._url = f"https://{desktop.get_host(desktop._novnc_port)}/vnc.html"
+        self._url = f"https://{desktop.get_host(desktop._novnc_port)}/vnc.html?autoconnect=true"
+
+        self._novnc_password = self._generate_password()
 
         pwd_flag = "-nopw"
-        if desktop._vnc_password:
+        if desktop._novnc_auth_enabled:
             desktop.commands.run("mkdir ~/.vnc")
-            desktop.commands.run(f"x11vnc -storepasswd {desktop._vnc_password} ~/.vnc/passwd")
+            desktop.commands.run(f"x11vnc -storepasswd {self._novnc_password} ~/.vnc/passwd")
             pwd_flag = "-usepw"
 
         self._vnc_command = (
@@ -31,34 +33,37 @@ class _VNCServer:
 
         self.__desktop = desktop
 
-    def _wait_for_port(self, port: int) -> None:
-        timeout = 10 
-        interval = 0.5
-        elapsed = 0
+    def _wait_for_port(self, port: int) -> bool:
+        return self.__desktop._wait_and_verify(
+            f'netstat -tuln | grep ":{port} "', lambda r: r.stdout.strip() != ""
+        )
+    
+    @staticmethod
+    def _generate_password(length: int = 16) -> str:
+        import secrets
+        import string
 
-        while elapsed < timeout:
-            output = self.__desktop.commands.run(f'netstat -tuln | grep ":{port} "').stdout
-            print(f"{output=}")
-            if output:
-                return
-            time.sleep(interval)
-            elapsed += interval
-
-        raise TimeoutError(f"Port {port} did not become available within {timeout} seconds")
+        characters = string.ascii_letters + string.digits
+        return ''.join(secrets.choice(characters) for _ in range(length))
 
     @property
     def url(self) -> str:
         return self._url
+    
+    @property
+    def password(self) -> str:
+        return self._novnc_password
 
     def start(self) -> None:
-        if self.__vnc_handle is not None:
-            return
-
+        self.stop() # If start is called while the server is already running, we just restart it
+        
         self.__vnc_handle = self.__desktop.commands.run(self._vnc_command, background=True)
-        self._wait_for_port(self.__desktop._vnc_port)
+        if not self._wait_for_port(self.__desktop._vnc_port):
+            raise TimeoutError("Could not start VNC server")
 
         self.__vnc_handle = self.__desktop.commands.run(self._novnc_command, background=True)
-        self._wait_for_port(self.__desktop._novnc_port)
+        if not self._wait_for_port(self.__desktop._novnc_port):
+            raise TimeoutError("Could not start noVNC server")
 
     def stop(self) -> None:
         if self.__vnc_handle:
@@ -99,7 +104,7 @@ class Desktop(SandboxBase):
         :param display: Startup the desktop with custom display. Defaults to ":0"
         :param vnc_port: Port number for VNC server. Defaults to 5900
         :param novnc_port: Port number for noVNC server. Defaults to 6080
-        :param enable_novnc_auth: If True, use the E2B API key as the VNC password. Defaults to False
+        :param enable_novnc_auth: Enable noVNC server authentication. Defaults to False
         :param template: Sandbox template name or ID
         :param timeout: Timeout for the sandbox in **seconds**, default to 300 seconds. Maximum time a sandbox can be kept alive is 24 hours (86_400 seconds) for Pro users and 1 hour (3_600 seconds) for Hobby users
         :param metadata: Custom metadata for the sandbox
@@ -126,34 +131,63 @@ class Desktop(SandboxBase):
         self._display = display or ":0"
         self._vnc_port = vnc_port or 5900
         self._novnc_port = novnc_port or 6080
-        self._vnc_password = self.connection_config.api_key if enable_novnc_auth else None
+        self._novnc_auth_enabled = enable_novnc_auth
 
-        width, height = resolution or (1024, 768)
+        resolution = resolution or (1024, 768)
+        self.width = resolution[0]
+        self.height = resolution[1]
+        self.dpi = dpi or 96
+        self._last_xfce4_pid = None
 
         self.commands.run(
-            f"Xvfb {self._display} -ac -screen 0 {width}x{height}x24 -retro -dpi {dpi or 96} -nolisten tcp -nolisten unix",
+            f"Xvfb {self._display} -ac -screen 0 {self.width}x{self.height}x24"
+            f" -retro -dpi {self.dpi} -nolisten tcp -nolisten unix",
             background=True
         )
-        self._wait_for_xvfb()
-        
-        self.commands.run("startxfce4", envs={"DISPLAY": self._display}, background=True)
+        if not self._wait_and_verify(
+            "xdpyinfo -display :0", lambda r: r.exit_code == 0
+        ):
+            raise TimeoutError("Could not start Xvfb")
 
         self.__vnc_server = _VNCServer(self)
+        self._start_xfce4()
 
-    def _wait_for_xvfb(self) -> None:
-        timeout = 10
-        interval = 0.5
+
+    def _wait_and_verify(
+        self, 
+        cmd: str, 
+        on_result: Callable[[CommandResult], bool],
+        timeout: int = 10,
+        interval: float = 0.5
+    ) -> bool:
+
         elapsed = 0
-
         while elapsed < timeout:
-            exit_code = self.commands.run("xdpyinfo -display :0").exit_code
-            if exit_code == 0:
-                return
-
+            if on_result(self.commands.run(cmd)):
+                return True
+            
             time.sleep(interval)
             elapsed += interval
 
-        raise TimeoutError("Xvfb did not become available within 10 seconds")
+        return False
+    
+    def _start_xfce4(self):
+        """
+        Start xfce4 session if logged out or not running.
+        """
+        if self._last_xfce4_pid is None or "[xfce4-session] <defunct>" in (
+            self.commands.run(f"ps aux | grep {self._last_xfce4_pid} | grep -v grep | head -n 1").stdout.strip()
+        ):
+            self._last_xfce4_pid = self.commands.run(
+                "startxfce4", envs={"DISPLAY": self._display}, background=True
+            ).pid
+    
+    def refresh(self):
+        """
+        Restart xfce4 session and VNC server. It can be used If you have been logged out.
+        """
+        self._start_xfce4()
+        self.__vnc_server.start()
 
     @property
     def vnc_server(self) -> _VNCServer:
