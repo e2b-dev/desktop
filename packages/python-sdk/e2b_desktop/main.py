@@ -1,20 +1,84 @@
-import os
+import time
 from re import search as re_search
 from shlex import quote as quote_string
 from typing import Dict, Iterator, Literal, Optional, overload, Tuple
 from uuid import uuid4
 
-from e2b import Sandbox as SandboxBase
+from e2b import Sandbox as SandboxBase, CommandHandle
+
+
+class _VNCServer:
+    def __init__(self, desktop: "Desktop") -> None:
+        self.__vnc_handle: CommandHandle | None = None
+        self.__novnc_handle: CommandHandle | None = None
+
+        self._url = f"https://{desktop.get_host(desktop._novnc_port)}/vnc.html"
+
+        pwd_flag = "-nopw"
+        if desktop._vnc_password:
+            desktop.commands.run("mkdir ~/.vnc")
+            desktop.commands.run(f"x11vnc -storepasswd {desktop._vnc_password} ~/.vnc/passwd")
+            pwd_flag = "-usepw"
+
+        self._vnc_command = (
+            f"x11vnc -display {desktop._display} -forever -wait 50 -shared "
+            f"-rfbport {desktop._vnc_port} {pwd_flag} 2>/tmp/x11vnc_stderr.log"
+        )
+        self._novnc_command = (
+            f"cd /opt/noVNC/utils && ./novnc_proxy --vnc localhost:{desktop._vnc_port} "
+            f"--listen {desktop._novnc_port} --web /opt/noVNC > /tmp/novnc.log 2>&1"
+        )
+
+        self.__desktop = desktop
+
+    def _wait_for_port(self, port: int) -> None:
+        timeout = 10 
+        interval = 0.5
+        elapsed = 0
+
+        while elapsed < timeout:
+            output = self.__desktop.commands.run(f'netstat -tuln | grep ":{port} "').stdout
+            print(f"{output=}")
+            if output:
+                return
+            time.sleep(interval)
+            elapsed += interval
+
+        raise TimeoutError(f"Port {port} did not become available within {timeout} seconds")
+
+    @property
+    def url(self) -> str:
+        return self._url
+
+    def start(self) -> None:
+        if self.__vnc_handle is not None:
+            return
+
+        self.__vnc_handle = self.__desktop.commands.run(self._vnc_command, background=True)
+        self._wait_for_port(self.__desktop._vnc_port)
+
+        self.__vnc_handle = self.__desktop.commands.run(self._novnc_command, background=True)
+        self._wait_for_port(self.__desktop._novnc_port)
+
+    def stop(self) -> None:
+        if self.__vnc_handle:
+            self.__vnc_handle.kill()
+        
+        if self.__novnc_handle:
+            self.__novnc_handle.kill()
 
 
 class Desktop(SandboxBase):
-    default_template = "ubuntu-desktop"
+    default_template = "desktop"
 
     def __init__(
         self,
         resolution: Optional[Tuple[int, int]] = None, 
         dpi: Optional[int] = None,
-        shared_vnc: bool = False,
+        display: Optional[str] = None,
+        vnc_port: Optional[int] = None,
+        novnc_port: Optional[int] = None,
+        enable_novnc_auth: bool = False,
         template: Optional[str] = None,
         timeout: Optional[int] = None,
         metadata: Optional[Dict[str, str]] = None,
@@ -28,11 +92,14 @@ class Desktop(SandboxBase):
         """
         Create a new desktop sandbox.
 
-        By default, the sandbox is created from the `ubuntu-desktop` template.
+        By default, the sandbox is created from the `desktop` template.
 
-        :param resolution: Startup the desktop with custom resolution. Defaults to (1024, 768)
+        :param resolution: Startup the desktop with custom screen resolution. Defaults to (1024, 768)
         :param dpi: Startup the desktop with custom DPI. Defaults to 96
-        :param shared_vnc: If True, VNC server can be connected from multiple clients. Defaults to False
+        :param display: Startup the desktop with custom display. Defaults to ":0"
+        :param vnc_port: Port number for VNC server. Defaults to 5900
+        :param novnc_port: Port number for noVNC server. Defaults to 6080
+        :param enable_novnc_auth: If True, use the E2B API key as the VNC password. Defaults to False
         :param template: Sandbox template name or ID
         :param timeout: Timeout for the sandbox in **seconds**, default to 300 seconds. Maximum time a sandbox can be kept alive is 24 hours (86_400 seconds) for Pro users and 1 hour (3_600 seconds) for Hobby users
         :param metadata: Custom metadata for the sandbox
@@ -45,16 +112,6 @@ class Desktop(SandboxBase):
 
         :return: sandbox instance for the new sandbox
         """
-        envs = envs or {}
-        resolution = resolution or (1024, 768)
-        envs.update({
-            "DISPLAY": ":0",
-            "WIDTH": str(resolution[0]),
-            "HEIGHT": str(resolution[1]),
-            "DPI": str(dpi or 96),
-            "VNC_PASSWORD": api_key or os.getenv("E2B_API_KEY", ""),
-            "SHARED_VNC": "1" if shared_vnc else "0"
-        })
         super().__init__(
             template=template,
             timeout=timeout,
@@ -66,11 +123,41 @@ class Desktop(SandboxBase):
             sandbox_id=sandbox_id,
             request_timeout=request_timeout,
         )
+        self._display = display or ":0"
+        self._vnc_port = vnc_port or 5900
+        self._novnc_port = novnc_port or 6080
+        self._vnc_password = self.connection_config.api_key if enable_novnc_auth else None
+
+        width, height = resolution or (1024, 768)
+
+        self.commands.run(
+            f"Xvfb {self._display} -ac -screen 0 {width}x{height}x24 -retro -dpi {dpi or 96} -nolisten tcp -nolisten unix",
+            background=True
+        )
+        self._wait_for_xvfb()
+        
+        self.commands.run("startxfce4", envs={"DISPLAY": self._display}, background=True)
+
+        self.__vnc_server = _VNCServer(self)
+
+    def _wait_for_xvfb(self) -> None:
+        timeout = 10
+        interval = 0.5
+        elapsed = 0
+
+        while elapsed < timeout:
+            exit_code = self.commands.run("xdpyinfo -display :0").exit_code
+            if exit_code == 0:
+                return
+
+            time.sleep(interval)
+            elapsed += interval
+
+        raise TimeoutError("Xvfb did not become available within 10 seconds")
 
     @property
-    def vnc_url(self) -> Optional[str]:
-        """Get the vnc url"""
-        return f"https://{self.get_host(6080)}/vnc.html"
+    def vnc_server(self) -> _VNCServer:
+        return self.__vnc_server
 
     @overload
     def take_screenshot(self, format: Literal["stream"]) -> Iterator[bytes]:
@@ -99,7 +186,7 @@ class Desktop(SandboxBase):
         """
         screenshot_path = f"/tmp/screenshot-{uuid4()}.png"
 
-        self.commands.run(f"scrot --pointer {screenshot_path}", envs={"DISPLAY": ":0"})
+        self.commands.run(f"scrot --pointer {screenshot_path}", envs={"DISPLAY": self._display})
 
         file = self.files.read(screenshot_path, format=format)
         self.files.remove(screenshot_path)
@@ -109,25 +196,25 @@ class Desktop(SandboxBase):
         """
         Left click on the current mouse position.
         """
-        self.commands.run("xdotool click 1", envs={"DISPLAY": ":0"})
+        self.commands.run("xdotool click 1", envs={"DISPLAY": self._display})
 
     def double_click(self):
         """
         Double left click on the current mouse position.
         """
-        self.commands.run("xdotool click --repeat 2 1", envs={"DISPLAY": ":0"})
+        self.commands.run("xdotool click --repeat 2 1", envs={"DISPLAY": self._display})
 
     def right_click(self):
         """
         Right click on the current mouse position.
         """
-        self.commands.run("xdotool click 3", envs={"DISPLAY": ":0"})
+        self.commands.run("xdotool click 3", envs={"DISPLAY": self._display})
 
     def middle_click(self):
         """
         Middle click on the current mouse position.
         """
-        self.commands.run("xdotool click 2", envs={"DISPLAY": ":0"})
+        self.commands.run("xdotool click 2", envs={"DISPLAY": self._display})
 
     def scroll(self, direction: Literal["up", "down"] = "down", amount: int = 1):
         """
@@ -138,7 +225,7 @@ class Desktop(SandboxBase):
         """
         self.commands.run(
             f"xdotool click --repeat {amount} {'4' if direction == 'up' else '5'}",
-            envs={"DISPLAY": ":0"}
+            envs={"DISPLAY": self._display}
         )
 
     def move_mouse(self, x: int, y: int):
@@ -148,7 +235,7 @@ class Desktop(SandboxBase):
         :param x: The x coordinate.
         :param y: The y coordinate.
         """
-        self.commands.run(f"xdotool mousemove --sync {x} {y}", envs={"DISPLAY": ":0"})
+        self.commands.run(f"xdotool mousemove --sync {x} {y}", envs={"DISPLAY": self._display})
 
     def get_cursor_position(self) -> Optional[tuple[int, int]]:
         """
@@ -156,7 +243,7 @@ class Desktop(SandboxBase):
 
         :return: A tuple with the x and y coordinates or None if the cursor is not visible.
         """
-        result = self.commands.run("xdotool getmouselocation", envs={"DISPLAY": ":0"})
+        result = self.commands.run("xdotool getmouselocation", envs={"DISPLAY": self._display})
         if output := result.stdout:
             if groups := re_search( r"x:(\d+)\s+y:(\d+)", output):
                 x, y = groups.group(1), groups.group(2)
@@ -169,7 +256,7 @@ class Desktop(SandboxBase):
 
         :return: A tuple with the width and height or None if the screen size is not visible.
         """
-        result = self.commands.run("xrandr", envs={"DISPLAY": ":0"})
+        result = self.commands.run("xrandr", envs={"DISPLAY": self._display})
         if output := result.stdout:
             _match = re_search(r"(\d+x\d+)", output)
             if _match:
@@ -194,7 +281,7 @@ class Desktop(SandboxBase):
 
         for chunk in break_into_chunks(text, chunk_size):
             self.commands.run(
-                f"xdotool type --delay {delay_in_ms} {quote_string(chunk)}", envs={"DISPLAY": ":0"}
+                f"xdotool type --delay {delay_in_ms} {quote_string(chunk)}", envs={"DISPLAY": self._display}
             )
 
     def press(self, key: str):
@@ -203,7 +290,7 @@ class Desktop(SandboxBase):
 
         :param key: The key to press (e.g. "enter", "space", "backspace", etc.).
         """
-        self.commands.run(f"xdotool key {key}", envs={"DISPLAY": ":0"})
+        self.commands.run(f"xdotool key {key}", envs={"DISPLAY": self._display})
 
     def hotkey(self, key: str):
         """
@@ -219,7 +306,7 @@ class Desktop(SandboxBase):
 
         :param file_or_url: The file or URL to open.
         """
-        self.commands.run(f"xdg-open {file_or_url}", background=True, envs={"DISPLAY": ":0"})
+        self.commands.run(f"xdg-open {file_or_url}", background=True, envs={"DISPLAY": self._display})
 
 
 Sandbox = Desktop

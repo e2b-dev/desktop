@@ -13,7 +13,6 @@
 template_id = "xrlk1xkhq3q708rhhqjg"
 dockerfile = "e2b.dev.Dockerfile"
 template_name = "desktop-dev"
-start_cmd = "/start-up.dev.sh"
 cpu_count = 4
 memory_mb = 4_096
 team_id = "460355b3-4f64-48f9-9a16-4442817f79f5"
