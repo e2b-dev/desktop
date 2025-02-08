@@ -68,9 +68,11 @@ class _VNCServer:
     def stop(self) -> None:
         if self.__vnc_handle:
             self.__vnc_handle.kill()
+            self.__vnc_handle = None
         
         if self.__novnc_handle:
             self.__novnc_handle.kill()
+            self.__novnc_handle = None
 
 
 class Desktop(SandboxBase):
