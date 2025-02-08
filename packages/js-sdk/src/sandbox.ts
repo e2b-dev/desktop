@@ -1,48 +1,90 @@
-import { Sandbox as SandboxBase, SandboxOpts as SandboxOptsBase, ConnectionConfig } from 'e2b'
-import { generateRandomId } from './utils'
-// import { extractText } from './ocr'
+import { Sandbox as SandboxBase, SandboxOpts as SandboxOptsBase, CommandHandle, CommandResult, ConnectionConfig, TimeoutError } from 'e2b'
 
+import { generateRandomString } from './utils'
+
+/**
+ * Configuration options for the Sandbox environment.
+ * @interface SandboxOpts
+ * @extends {SandboxOptsBase}
+ */
 export interface SandboxOpts extends SandboxOptsBase {
-  videoStream?: boolean
-  onVideoStreamStart?: (url: string) => void
+  /**
+   * The screen resolution in pixels, specified as [width, height].
+   * @type {[number, number]}
+   */
+  resolution?: [number, number]
+
+  /**
+   * Dots per inch (DPI) setting for the display.
+   * @type {number}
+   */
+  dpi?: number
+
+  /**
+   * Display identifier.
+   * @type {string}
+   */
+  display?: string
+
+  /**
+   * Port number for the VNC server.
+   * @type {number}
+   */
+  vncPort?: number
+
+  /**
+   * Port number for the noVNC proxy server.
+   * @type {number}
+   */
+  novncPort?: number
+
+  /**
+   * Whether to enable authentication for noVNC connections.
+   * @type {boolean}
+   */
+  enableNoVncAuth?: boolean
 }
 
-export class Sandbox extends SandboxBase {
+
+export class Desktop extends SandboxBase {
   protected static override readonly defaultTemplate: string = 'desktop'
-  private static readonly streamBaseUrl = 'https://e2b.dev'
-  private videoStreamToken?: string
+  private lastXfce4Pid: number | null = null;
+  display: string = ':0';
+  vncPort: number = 5900;
+  novncPort: number = 6080;
+  novncAuthEnabled: boolean = false;
+  vncServer: VNCServer | null = null;
 
-  private static async startVideoStream(sandbox: Sandbox, apiKey: string, sandboxId: string, onVideoStreamStart?: (url: string) => void) {
-    // First we need to get the stream key
-    const response = await fetch(`${this.streamBaseUrl}/api/stream/sandbox`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-Key': apiKey
-      },
-      body: JSON.stringify({
-        sandboxId,
-      })
-    })
+  ///////////////// This did not work for some reason or I am just making some dumb mistake
+  //   readonly display: string;
+  //   readonly vncPort: number;
+  //   readonly novncPort: number;
+  //   readonly novncAuthEnabled: boolean;
+  //   readonly vncServer: VNCServer;
 
-    if (!response.ok) {
-      throw new Error(`Failed to start video stream: ${response.statusText}`)
-    }
-
-    const data: { streamKey: string, token: string } = await response.json()
-    sandbox.videoStreamToken = data.token
-
-    const command = 'ffmpeg -video_size 1024x768 -f x11grab -i :99 -c:v libx264 -c:a aac -g 50 -b:v 4000k -maxrate 4000k -bufsize 8000k -f flv rtmp://global-live.mux.com:5222/app/$STREAM_KEY'
-    await sandbox.commands.run(command, {
-      background: true,
-      envs: {
-        STREAM_KEY: data.streamKey
-      },
-    })
-    const url = await sandbox.getVideoStreamUrl()
-    onVideoStreamStart?.(url)
-  }
-
+  //   /**
+  //  * Use {@link Sandbox.create} to create a new Sandbox instead.
+  //  *
+  //  * @hidden
+  //  * @hide
+  //  * @internal
+  //  * @access protected
+  //  */
+  //   constructor(opts: Omit<SandboxOpts, 'timeoutMs' | 'envs' | 'metadata'> & {
+  //     sandboxId: string;
+  //     envdVersion?: string;
+  //   }) {
+  //     console.log("opts", opts)
+  //     super(opts);
+  //     this.display = opts.display || ':0';
+  //     this.vncPort = opts.vncPort || 5900;
+  //     this.novncPort = opts.novncPort || 6080;
+  //     console.log("enabled?", opts.enableNoVncAuth)
+  //     this.novncAuthEnabled = opts.enableNoVncAuth || false;
+  //     this.lastXfce4Pid = null;
+  //     this.vncServer = new VNCServer(this);
+  //   }
+  /////////////////////////////////////////////////////////////////////
   /**
    * Create a new sandbox from the default `desktop` sandbox template.
    *
@@ -52,11 +94,11 @@ export class Sandbox extends SandboxBase {
    *
    * @example
    * ```ts
-   * const sandbox = await Sandbox.create()
+   * const sandbox = await Desktop.create()
    * ```
-   * @constructs Sandbox
+   * @constructs Desktop
    */
-  static async create<S extends typeof Sandbox>(
+  static async create<S extends typeof Desktop>(
     this: S,
     opts?: SandboxOpts
   ): Promise<InstanceType<S>>
@@ -70,16 +112,16 @@ export class Sandbox extends SandboxBase {
    *
    * @example
    * ```ts
-   * const sandbox = await Sandbox.create('<template-name-or-id>')
+   * const sandbox = await Desktop.create('<template-name-or-id>')
    * ```
-   * @constructs Sandbox
+   * @constructs Desktop
    */
-  static async create<S extends typeof Sandbox>(
+  static async create<S extends typeof Desktop>(
     this: S,
     template: string,
     opts?: SandboxOpts
   ): Promise<InstanceType<S>>
-  static async create<S extends typeof Sandbox>(
+  static async create<S extends typeof Desktop>(
     this: S,
     templateOrOpts?: SandboxOpts | string,
     opts?: SandboxOpts
@@ -96,43 +138,131 @@ export class Sandbox extends SandboxBase {
       sbx = new this({ sandboxId: 'debug_sandbox_id', ...config }) as InstanceType<S>
     } else {
       const sandbox = await this.createSandbox(
-          template,
-          sandboxOpts?.timeoutMs ?? this.defaultSandboxTimeoutMs,
-          sandboxOpts
+        template,
+        sandboxOpts?.timeoutMs ?? this.defaultSandboxTimeoutMs,
+        sandboxOpts
       )
       sbx = new this({ ...sandbox, ...config }) as InstanceType<S>
     }
+    console.log("Sandbox created")
+    console.log("opts", opts)
+    sbx.display = sandboxOpts?.display || ':0';
+    sbx.vncPort = sandboxOpts?.vncPort || 5900;
+    sbx.novncPort = sandboxOpts?.novncPort || 6080;
+    console.log("enabled?", sandboxOpts?.enableNoVncAuth)
+    sbx.novncAuthEnabled = sandboxOpts?.enableNoVncAuth || false;
+    sbx.lastXfce4Pid = null;
+    sbx.vncServer = new VNCServer(sbx);
 
+    const [width, height] = sandboxOpts?.resolution ?? [1024, 768]
+    await sbx.commands.run(
+      `Xvfb ${sbx.display} -ac -screen 0 ${width}x${height}x24 ` +
+      `-retro -dpi ${sandboxOpts?.dpi ?? 96} -nolisten tcp -nolisten unix`,
+      { background: true }
+    )
+    console.log("Xvfb started")
 
-    if (sandboxOpts?.videoStream) {
-      this.startVideoStream(sbx, config.apiKey!, sbx.sandboxId, sandboxOpts?.onVideoStreamStart)
+    let hasStarted = await sbx.waitAndVerify(
+      `xdpyinfo -display ${sbx.display}`, (r: CommandResult) => r.exitCode === 0
+    )
+    if (!hasStarted) {
+      throw new TimeoutError("Could not start Xvfb")
     }
+
+    await sbx.startXfce4()
 
     return sbx
   }
+  ///// The following implementation was being used in conjunction with the commented constructor above
+  // static async create<S extends typeof Desktop>(
+  //   this: S,
+  //   templateOrOpts?: SandboxOpts | string,
+  //   opts?: SandboxOpts
+  // ): Promise<InstanceType<S>> {
+  //   const { template, sandboxOpts } =
+  //     typeof templateOrOpts === 'string'
+  //       ? { template: templateOrOpts, sandboxOpts: opts }
+  //       : { template: this.defaultTemplate, sandboxOpts: templateOrOpts }
 
-  async getVideoStreamUrl() {
-    // We already have the token
-    if (this.videoStreamToken) {
-      return `${Sandbox.streamBaseUrl}/stream/sandbox/${this.sandboxId}?token=${this.videoStreamToken}`
-    }
+  //   const config = new ConnectionConfig(sandboxOpts)
 
-    // In cases like when a user reconnects to the sandbox, we don't have the token yet and need to get it from the server
-    const response = await fetch(`${Sandbox.streamBaseUrl}/api/stream/sandbox/${this.sandboxId}`, {
-      method: 'GET',
-      headers: {
-        'X-API-Key': this.connectionConfig.apiKey!
+  //   let sbx
+  //   if (config.debug) {
+  //     sbx = new this({ sandboxId: 'debug_sandbox_id', ...config }) as InstanceType<S>
+  //   } else {
+  //     const sandbox = await this.createSandbox(
+  //       template,
+  //       sandboxOpts?.timeoutMs ?? this.defaultSandboxTimeoutMs,
+  //       sandboxOpts
+  //     )
+  //     sbx = new this({ ...sandbox, ...config }) as InstanceType<S>
+  //   }
+  //   console.log("Sandbox created")
+
+  //   const [width, height] = sandboxOpts?.resolution ?? [1024, 768]
+  //   await sbx.commands.run(
+  //     `Xvfb ${sbx.display} -ac -screen 0 ${width}x${height}x24 ` +
+  //     `-retro -dpi ${sandboxOpts?.dpi ?? 96} -nolisten tcp -nolisten unix`,
+  //     { background: true }
+  //   )
+  //   console.log("Xvfb started")
+
+  //   let hasStarted = await sbx.waitAndVerify(
+  //     `xdpyinfo -display ${sbx.display}`, (r: CommandResult) => r.exitCode === 0
+  //   )
+  //   if (!hasStarted) {
+  //     throw new TimeoutError("Could not start Xvfb")
+  //   }
+
+  //   await sbx.startXfce4()
+
+  //   return sbx
+  // }
+
+  async waitAndVerify(
+    cmd: string,
+    onResult: (result: CommandResult) => boolean,
+    timeout: number = 10,
+    interval: number = 0.5
+  ): Promise<boolean> {
+    let elapsed = 0;
+
+    while (elapsed < timeout) {
+      if (onResult(await this.commands.run(cmd))) {
+        return true;
       }
-    })
 
-    if (!response.ok) {
-      throw new Error(`Failed to get stream token: ${response.status} ${response.statusText}`)
+      await new Promise(resolve => setTimeout(resolve, interval * 1000));
+      elapsed += interval;
     }
 
-    const data: { token: string } = await response.json()
-    this.videoStreamToken = data.token
+    return false;
+  }
 
-    return `${Sandbox.streamBaseUrl}/stream/sandbox/${this.sandboxId}?token=${this.videoStreamToken}`
+  /**
+   * Start xfce4 session if logged out or not running.
+   */
+  private async startXfce4(): Promise<void> {
+    console.log("running startxfce4")
+    if (this.lastXfce4Pid === null || (
+      await this.commands.run(
+        `ps aux | grep ${this.lastXfce4Pid} | grep -v grep | head -n 1`
+      )).stdout.trim().includes("[xfce4-session] <defunct>")
+    ) {
+      const result = await this.commands.run(
+        "startxfce4", { envs: { DISPLAY: this.display }, background: true }
+      );
+      this.lastXfce4Pid = result.pid;
+    }
+    console.log("xfce4 started", this.lastXfce4Pid)
+  }
+
+  /**
+   * Restart xfce4 session and VNC server. It can be used If you have been logged out.
+   */
+  async refresh(): Promise<void> {
+    await this.startXfce4();
+    await this.vncServer?.start();
   }
 
   /**
@@ -158,8 +288,8 @@ export class Sandbox extends SandboxBase {
    */
   async takeScreenshot(format: 'stream'): Promise<ReadableStream<Uint8Array>>
   async takeScreenshot(format: 'bytes' | 'blob' | 'stream' = 'bytes') {
-    const path = `/tmp/screenshot-${generateRandomId()}.png`
-    await this.commands.run(`scrot --pointer ${path}`)
+    const path = `/tmp/screenshot-${generateRandomString()}.png`
+    await this.commands.run(`scrot --pointer ${path}`, { envs: { DISPLAY: this.display } })
 
     // @ts-expect-error
     const file = await this.files.read(path, { format })
@@ -170,71 +300,41 @@ export class Sandbox extends SandboxBase {
   /**
    * Left click on the current mouse position.
    */
-  async leftClick() {
-    return this.runPyautoguiCode('pyautogui.click()')
+  async leftClick(): Promise<void> {
+    await this.commands.run("xdotool click 1", { envs: { DISPLAY: this.display } });
   }
 
   /**
    * Double left click on the current mouse position.
    */
-  async doubleClick() {
-    return this.runPyautoguiCode('pyautogui.click(clicks=2, interval=0.25)')
+  async doubleClick(): Promise<void> {
+    await this.commands.run("xdotool click --repeat 2 1", { envs: { DISPLAY: this.display } });
   }
 
   /**
    * Right click on the current mouse position.
    */
-  async rightClick() {
-    return this.runPyautoguiCode('pyautogui.rightClick()')
+  async rightClick(): Promise<void> {
+    await this.commands.run("xdotool click 3", { envs: { DISPLAY: this.display } });
   }
 
   /**
    * Middle click on the current mouse position.
    */
-  async middleClick() {
-    return this.runPyautoguiCode('pyautogui.middleClick()')
+  async middleClick(): Promise<void> {
+    await this.commands.run("xdotool click 2", { envs: { DISPLAY: this.display } });
   }
 
   /**
    * Scroll the mouse wheel by the given amount.
+   * @param direction - The direction to scroll. Can be "up" or "down".
    * @param amount - The amount to scroll.
    */
-  async scroll(amount: number) {
-    return this.runPyautoguiCode(`pyautogui.scroll(${amount})`)
-  }
-
-  /**
-   * Write the given text at the current cursor position.
-   * @param text - The text to write.
-   */
-  async write(text: string) {
-    return this.runPyautoguiCode(`pyautogui.write(${JSON.stringify(text)})`)
-  }
-
-  /**
-   * Press a key.
-   * @param key - The key to press (e.g. "enter", "space", "backspace", etc.).
-   */
-  async press(key: string) {
-    return this.runPyautoguiCode(`pyautogui.press(${JSON.stringify(key)})`)
-  }
-
-  /**
-   * Press a hotkey.
-   * @param keys - The keys to press (e.g. `hotkey("ctrl", "c")` will press Ctrl+C).
-   */
-  async hotkey(...keys: string[]) {
-    const keysString = keys.map(key => JSON.stringify(key)).join(', ')
-    return this.runPyautoguiCode(`pyautogui.hotkey(${keysString})`)
-  }
-
-  /**
-   * Open a file or a URL in the default application.
-   * Note that you'll need to wait for the application to be opened.
-   * @param fileOrUrl - The file or URL to open.
-   */
-  async open(fileOrUrl: string) {
-    return this.commands.run(`xdg-open ${fileOrUrl}`, { background: true })
+  async scroll(direction: 'up' | 'down' = 'down', amount: number = 1): Promise<void> {
+    const button = direction === 'up' ? '4' : '5';
+    await this.commands.run(
+      `xdotool click --repeat ${amount} ${button}`, { envs: { DISPLAY: this.display } }
+    );
   }
 
   /**
@@ -242,77 +342,205 @@ export class Sandbox extends SandboxBase {
    * @param x - The x coordinate.
    * @param y - The y coordinate.
    */
-  async moveMouse(x: number, y: number) {
-    return this.runPyautoguiCode(`pyautogui.moveTo(${x}, ${y})`)
+  async moveMouse(x: number, y: number): Promise<void> {
+    await this.commands.run(
+      `xdotool mousemove --sync ${x} ${y}`, { envs: { DISPLAY: this.display } }
+    );
   }
 
   /**
-   * Get the current mouse position.
-   * @returns An object with `x` and `y` coordinates.
+   * Get the current cursor position.
+   * @returns A object with the x and y coordinates or null if the cursor is not visible.
    */
-  async getCursorPosition() {
-    // We save the value to a file because stdout contains warnings about Xauthority.
-    await this.runPyautoguiCode(`
-x, y = pyautogui.position()
-with open("/tmp/cursor_position.txt", "w") as f:
-    f.write(str(x) + " " + str(y))
-`)
-    // pos is like this: 100 200
-    const pos = await this.files.read('/tmp/cursor_position.txt')
-    const [x, y] = pos.split(' ').map(Number)
-    return { x, y }
-  }
+  async getCursorPosition(): Promise<CursorPosition | null> {
+    const result = await this.commands.run(
+      "xdotool getmouselocation", { envs: { DISPLAY: this.display } }
+    );
 
+    const match = result.stdout.match(/x:(\d+)\s+y:(\d+)/);
+    if (match) {
+      const [, x, y] = match;
+      if (x && y) {
+        return { x: parseInt(x), y: parseInt(y) };
+      }
+    }
+    return null;
+  }
   /**
    * Get the current screen size.
-   * @returns An object with `width` and `height` properties.
+   * @returns An {@link ScreenSize} object or null if the screen size is not visible.
    */
-  async getScreenSize() {
-    // We save the value to a file because stdout contains warnings about Xauthority.
-    await this.runPyautoguiCode(`
-width, height = pyautogui.size()
-with open("/tmp/size.txt", "w") as f:
-    f.write(str(width) + " " + str(height))
-`)
-    // Size is like this: 100 200
-    const size = await this.files.read('/tmp/size.txt')
-    const [width, height] = size.split(' ').map(Number)
-    return { width, height }
+  async getScreenSize(): Promise<ScreenSize | null> {
+    const result = await this.commands.run(
+      "xrandr", { envs: { DISPLAY: this.display } }
+    );
+
+    const match = result.stdout.match(/(\d+x\d+)/);
+    if (match) {
+      const [width, height] = match[1].split('x').map(Number);
+      return { width, height };
+    }
+    return null;
+  }
+
+  private *breakIntoChunks(text: string, n: number): Generator<string> {
+    for (let i = 0; i < text.length; i += n) {
+      yield text.slice(i, i + n);
+    }
+  }
+
+  private quoteString(s: string): string {
+    if (!s) {
+      return "''";
+    }
+
+    if (!/[^\w@%+=:,./-]/.test(s)) {
+      return s;
+    }
+
+    // use single quotes, and put single quotes into double quotes
+    // the string $'b is then quoted as '$'"'"'b'
+    return "'" + s.replace(/'/g, "'\"'\"'") + "'";
   }
 
   /**
-   * Run the given Python code that uses pyautogui.
+   * Write the given text at the current cursor position.
+   * @param text - The text to write.
+   * @param chunkSize - The size of each chunk of text to write.
+   * @param delayInMs - The delay between each chunk of text.
    */
-  async runPyautoguiCode(
-    code: string,
-    opts: {
-      onStdout?: (data: string) => void
-      onStderr?: (data: string) => void
-    } = {},
-  ) {
-    const path = `/tmp/code-${generateRandomId()}.py`
-    const wrappedCode = this.wrapPyautoguiCode(code)
-    await this.files.write(path, wrappedCode)
-    const out = await this.commands.run(`python ${path}`, {
-      onStdout: opts.onStdout,
-      onStderr: opts.onStderr,
-    })
+  async write(
+    text: string,
+    chunkSize: number = 25,
+    delayInMs: number = 75
+  ): Promise<void> {
+    const chunks = this.breakIntoChunks(text, chunkSize);
 
-    this.files.remove(path)
-    return out
+    for (const chunk of chunks) {
+      await this.commands.run(
+        `xdotool type --delay ${delayInMs} ${this.quoteString(chunk)}`,
+        { envs: { DISPLAY: this.display } }
+      );
+    }
   }
 
-  private wrapPyautoguiCode(code: string) {
-    return `
-import pyautogui
-import os
-import Xlib.display
-
-display = Xlib.display.Display(os.environ["DISPLAY"])
-pyautogui._pyautogui_x11._display = display
-
-${code}
-exit(0)
-`
+  /**
+   * Press a key.
+   * @param key - The key to press (e.g. "enter", "space", "backspace", etc.).
+   */
+  async press(key: string): Promise<void> {
+    await this.commands.run(
+      `xdotool key ${key}`, { envs: { DISPLAY: this.display } }
+    );
   }
+
+  /**
+   * Press a hotkey.
+   * @param key - The key to press (e.g. "ctrl+c").
+   */
+  async hotkey(key: string): Promise<void> {
+    await this.press(key);
+  }
+
+  /**
+   * Open a file or a URL in the default application.
+   * @param fileOrUrl - The file or URL to open.
+   */
+  async open(fileOrUrl: string): Promise<void> {
+    await this.commands.run(
+      `xdg-open ${fileOrUrl}`, { background: true, envs: { DISPLAY: this.display } }
+    );
+  }
+}
+
+export class Sandbox extends Desktop { }
+
+
+class VNCServer {
+  private vncHandle: CommandHandle | null = null;
+  private novncHandle: CommandHandle | null = null;
+  private readonly url: URL;
+  readonly password: string;
+  private vncCommand: string = "";
+  private readonly novncCommand: string;
+  private readonly desktop: Desktop;
+
+  constructor(desktop: Desktop) {
+    this.desktop = desktop;
+    this.url = new URL(`https://${desktop.getHost(desktop.novncPort)}/vnc.html`);
+    this.password = generateRandomString();
+
+    this.novncCommand = (
+      `cd /opt/noVNC/utils && ./novnc_proxy --vnc localhost:${desktop.vncPort} ` +
+      `--listen ${desktop.novncPort} --web /opt/noVNC > /tmp/novnc.log 2>&1`
+    );
+  }
+
+  private async setVncCommand(): Promise<void> {
+    let pwdFlag = "-nopw";
+    if (this.desktop.novncAuthEnabled) {
+      await this.desktop.commands.run("mkdir ~/.vnc");
+      await this.desktop.commands.run(`x11vnc -storepasswd ${this.password} ~/.vnc/passwd`);
+      pwdFlag = "-usepw";
+    }
+
+    this.vncCommand = (
+      `x11vnc -display ${this.desktop.display} -forever -wait 50 -shared ` +
+      `-rfbport ${this.desktop.vncPort} ${pwdFlag} 2>/tmp/x11vnc_stderr.log`
+    );
+    console.log("vnc command", this.vncCommand)
+  }
+
+  private async waitForPort(port: number): Promise<boolean> {
+    return await this.desktop.waitAndVerify(
+      `netstat -tuln | grep ":${port} "`, (r: CommandResult) => r.stdout.trim() !== ""
+    );
+  }
+
+  public getUrl(autoConnect: boolean = true): string {
+    let url = new URL(this.url);
+    if (autoConnect) {
+      url.searchParams.set('autoconnect', 'true');
+    }
+    return url.toString()
+  }
+
+  public async start(): Promise<void> {
+    await this.stop(); // If start is called while the server is already running, we just restart it
+
+    if (this.vncCommand === "") {
+      await this.setVncCommand();
+    }
+    this.vncHandle = await this.desktop.commands.run(this.vncCommand, { background: true });
+    if (!await this.waitForPort(this.desktop.vncPort)) {
+      throw new Error("Could not start VNC server");
+    }
+
+    this.novncHandle = await this.desktop.commands.run(this.novncCommand, { background: true });
+    if (!await this.waitForPort(this.desktop.novncPort)) {
+      throw new Error("Could not start noVNC server");
+    }
+  }
+
+  public async stop(): Promise<void> {
+    if (this.vncHandle) {
+      await this.vncHandle.kill();
+      this.vncHandle = null;
+    }
+
+    if (this.novncHandle) {
+      await this.novncHandle.kill();
+      this.novncHandle = null;
+    }
+  }
+}
+
+interface CursorPosition {
+  x: number;
+  y: number;
+}
+
+interface ScreenSize {
+  width: number;
+  height: number;
 }
