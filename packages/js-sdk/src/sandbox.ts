@@ -2,6 +2,17 @@ import { Sandbox as SandboxBase, SandboxOpts as SandboxOptsBase, CommandHandle, 
 
 import { generateRandomString } from './utils'
 
+
+interface CursorPosition {
+  x: number;
+  y: number;
+}
+
+interface ScreenSize {
+  width: number;
+  height: number;
+}
+
 /**
  * Configuration options for the Sandbox environment.
  * @interface SandboxOpts
@@ -49,42 +60,32 @@ export interface SandboxOpts extends SandboxOptsBase {
 export class Desktop extends SandboxBase {
   protected static override readonly defaultTemplate: string = 'desktop'
   private lastXfce4Pid: number | null = null;
-  display: string = ':0';
-  vncPort: number = 5900;
-  novncPort: number = 6080;
-  novncAuthEnabled: boolean = false;
-  vncServer: VNCServer | null = null;
+  readonly display: string;
+  readonly vncPort: number;
+  readonly novncPort: number;
+  readonly novncAuthEnabled: boolean;
+  readonly vncServer: VNCServer;
 
-  ///////////////// This did not work for some reason or I am just making some dumb mistake
-  //   readonly display: string;
-  //   readonly vncPort: number;
-  //   readonly novncPort: number;
-  //   readonly novncAuthEnabled: boolean;
-  //   readonly vncServer: VNCServer;
-
-  //   /**
-  //  * Use {@link Sandbox.create} to create a new Sandbox instead.
-  //  *
-  //  * @hidden
-  //  * @hide
-  //  * @internal
-  //  * @access protected
-  //  */
-  //   constructor(opts: Omit<SandboxOpts, 'timeoutMs' | 'envs' | 'metadata'> & {
-  //     sandboxId: string;
-  //     envdVersion?: string;
-  //   }) {
-  //     console.log("opts", opts)
-  //     super(opts);
-  //     this.display = opts.display || ':0';
-  //     this.vncPort = opts.vncPort || 5900;
-  //     this.novncPort = opts.novncPort || 6080;
-  //     console.log("enabled?", opts.enableNoVncAuth)
-  //     this.novncAuthEnabled = opts.enableNoVncAuth || false;
-  //     this.lastXfce4Pid = null;
-  //     this.vncServer = new VNCServer(this);
-  //   }
-  /////////////////////////////////////////////////////////////////////
+  /**
+   * Use {@link Sandbox.create} to create a new Sandbox instead.
+   *
+   * @hidden
+   * @hide
+   * @internal
+   * @access protected
+   */
+  constructor(opts: Omit<SandboxOpts, 'timeoutMs' | 'envs' | 'metadata'> & {
+    sandboxId: string;
+    envdVersion?: string;
+  }) {
+    super(opts);
+    this.display = opts.display || ':0';
+    this.vncPort = opts.vncPort || 5900;
+    this.novncPort = opts.novncPort || 6080;
+    this.novncAuthEnabled = opts.enableNoVncAuth || false;
+    this.lastXfce4Pid = null;
+    this.vncServer = new VNCServer(this);
+  }
   /**
    * Create a new sandbox from the default `desktop` sandbox template.
    *
@@ -135,24 +136,15 @@ export class Desktop extends SandboxBase {
 
     let sbx
     if (config.debug) {
-      sbx = new this({ sandboxId: 'debug_sandbox_id', ...config }) as InstanceType<S>
+      sbx = new this({ sandboxId: 'debug_sandbox_id', ...sandboxOpts, ...config }) as InstanceType<S>
     } else {
       const sandbox = await this.createSandbox(
         template,
         sandboxOpts?.timeoutMs ?? this.defaultSandboxTimeoutMs,
         sandboxOpts
       )
-      sbx = new this({ ...sandbox, ...config }) as InstanceType<S>
+      sbx = new this({ ...sandbox, ...sandboxOpts, ...config }) as InstanceType<S>
     }
-    console.log("Sandbox created")
-    console.log("opts", opts)
-    sbx.display = sandboxOpts?.display || ':0';
-    sbx.vncPort = sandboxOpts?.vncPort || 5900;
-    sbx.novncPort = sandboxOpts?.novncPort || 6080;
-    console.log("enabled?", sandboxOpts?.enableNoVncAuth)
-    sbx.novncAuthEnabled = sandboxOpts?.enableNoVncAuth || false;
-    sbx.lastXfce4Pid = null;
-    sbx.vncServer = new VNCServer(sbx);
 
     const [width, height] = sandboxOpts?.resolution ?? [1024, 768]
     await sbx.commands.run(
@@ -160,7 +152,6 @@ export class Desktop extends SandboxBase {
       `-retro -dpi ${sandboxOpts?.dpi ?? 96} -nolisten tcp -nolisten unix`,
       { background: true }
     )
-    console.log("Xvfb started")
 
     let hasStarted = await sbx.waitAndVerify(
       `xdpyinfo -display ${sbx.display}`, (r: CommandResult) => r.exitCode === 0
@@ -173,52 +164,15 @@ export class Desktop extends SandboxBase {
 
     return sbx
   }
-  ///// The following implementation was being used in conjunction with the commented constructor above
-  // static async create<S extends typeof Desktop>(
-  //   this: S,
-  //   templateOrOpts?: SandboxOpts | string,
-  //   opts?: SandboxOpts
-  // ): Promise<InstanceType<S>> {
-  //   const { template, sandboxOpts } =
-  //     typeof templateOrOpts === 'string'
-  //       ? { template: templateOrOpts, sandboxOpts: opts }
-  //       : { template: this.defaultTemplate, sandboxOpts: templateOrOpts }
 
-  //   const config = new ConnectionConfig(sandboxOpts)
-
-  //   let sbx
-  //   if (config.debug) {
-  //     sbx = new this({ sandboxId: 'debug_sandbox_id', ...config }) as InstanceType<S>
-  //   } else {
-  //     const sandbox = await this.createSandbox(
-  //       template,
-  //       sandboxOpts?.timeoutMs ?? this.defaultSandboxTimeoutMs,
-  //       sandboxOpts
-  //     )
-  //     sbx = new this({ ...sandbox, ...config }) as InstanceType<S>
-  //   }
-  //   console.log("Sandbox created")
-
-  //   const [width, height] = sandboxOpts?.resolution ?? [1024, 768]
-  //   await sbx.commands.run(
-  //     `Xvfb ${sbx.display} -ac -screen 0 ${width}x${height}x24 ` +
-  //     `-retro -dpi ${sandboxOpts?.dpi ?? 96} -nolisten tcp -nolisten unix`,
-  //     { background: true }
-  //   )
-  //   console.log("Xvfb started")
-
-  //   let hasStarted = await sbx.waitAndVerify(
-  //     `xdpyinfo -display ${sbx.display}`, (r: CommandResult) => r.exitCode === 0
-  //   )
-  //   if (!hasStarted) {
-  //     throw new TimeoutError("Could not start Xvfb")
-  //   }
-
-  //   await sbx.startXfce4()
-
-  //   return sbx
-  // }
-
+  /**
+   * Wait for a command to return a specific result.
+   * @param cmd - The command to run.
+   * @param onResult - The function to check the result of the command.
+   * @param timeout - The maximum time to wait for the command to return the result.
+   * @param interval - The interval to wait between checks.
+   * @returns `true` if the command returned the result within the timeout, otherwise `false`.
+   */
   async waitAndVerify(
     cmd: string,
     onResult: (result: CommandResult) => boolean,
@@ -243,7 +197,6 @@ export class Desktop extends SandboxBase {
    * Start xfce4 session if logged out or not running.
    */
   private async startXfce4(): Promise<void> {
-    console.log("running startxfce4")
     if (this.lastXfce4Pid === null || (
       await this.commands.run(
         `ps aux | grep ${this.lastXfce4Pid} | grep -v grep | head -n 1`
@@ -254,7 +207,6 @@ export class Desktop extends SandboxBase {
       );
       this.lastXfce4Pid = result.pid;
     }
-    console.log("xfce4 started", this.lastXfce4Pid)
   }
 
   /**
@@ -262,7 +214,7 @@ export class Desktop extends SandboxBase {
    */
   async refresh(): Promise<void> {
     await this.startXfce4();
-    await this.vncServer?.start();
+    await this.vncServer.start();
   }
 
   /**
@@ -453,8 +405,6 @@ export class Desktop extends SandboxBase {
   }
 }
 
-export class Sandbox extends Desktop { }
-
 
 class VNCServer {
   private vncHandle: CommandHandle | null = null;
@@ -476,6 +426,9 @@ class VNCServer {
     );
   }
 
+  /**
+   * Set the VNC command to start the VNC server.
+   */
   private async setVncCommand(): Promise<void> {
     let pwdFlag = "-nopw";
     if (this.desktop.novncAuthEnabled) {
@@ -488,7 +441,6 @@ class VNCServer {
       `x11vnc -display ${this.desktop.display} -forever -wait 50 -shared ` +
       `-rfbport ${this.desktop.vncPort} ${pwdFlag} 2>/tmp/x11vnc_stderr.log`
     );
-    console.log("vnc command", this.vncCommand)
   }
 
   private async waitForPort(port: number): Promise<boolean> {
@@ -497,6 +449,11 @@ class VNCServer {
     );
   }
 
+  /**
+   * Get the URL to connect to the VNC server.
+   * @param autoConnect - Whether to automatically connect to the server after opening the URL.
+   * @returns The URL to connect to the VNC server.
+   */
   public getUrl(autoConnect: boolean = true): string {
     let url = new URL(this.url);
     if (autoConnect) {
@@ -505,6 +462,9 @@ class VNCServer {
     return url.toString()
   }
 
+  /**
+   * Start the VNC server.
+   */
   public async start(): Promise<void> {
     await this.stop(); // If start is called while the server is already running, we just restart it
 
@@ -522,6 +482,9 @@ class VNCServer {
     }
   }
 
+  /**
+   * Stop the VNC server.
+   */
   public async stop(): Promise<void> {
     if (this.vncHandle) {
       await this.vncHandle.kill();
@@ -535,12 +498,4 @@ class VNCServer {
   }
 }
 
-interface CursorPosition {
-  x: number;
-  y: number;
-}
-
-interface ScreenSize {
-  width: number;
-  height: number;
-}
+export class Sandbox extends Desktop { }
