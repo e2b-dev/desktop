@@ -7,11 +7,12 @@ from e2b_desktop import Desktop
 load_dotenv()
 
 print("Starting desktop sandbox...")
-desktop = Desktop(template="desktop-dev", enable_novnc_auth=True) # Use desktop-dev-v2 If you haven't built desktop-dev
+desktop = Desktop(template="desktop-dev-v2", enable_novnc_auth=True) # Use desktop-dev-v2 If you haven't built desktop-dev
+print("Screen size:", desktop.get_screen_size())
 
 desktop.vnc_server.start()
 
-print("VNC URL:", desktop.vnc_server.url)
+print("VNC URL:", desktop.vnc_server.get_url(auto_connect=True))
 print("VNC Password:", desktop.vnc_server.password)
 
 input("Press enter to continue...")
@@ -29,6 +30,7 @@ with open("1.png", "wb") as f:
 print("Moving mouse to 'Applications' and clicking...")
 desktop.move_mouse(100, 100)
 desktop.left_click()
+print("Cursor position:", desktop.get_cursor_position())
 
 time.sleep(1)
 screenshot = desktop.take_screenshot(format="bytes")

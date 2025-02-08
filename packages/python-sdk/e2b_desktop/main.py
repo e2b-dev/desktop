@@ -4,7 +4,7 @@ from shlex import quote as quote_string
 from typing import Callable, Dict, Iterator, Literal, Optional, overload, Tuple
 from uuid import uuid4
 
-from e2b import Sandbox as SandboxBase, CommandHandle, CommandResult
+from e2b import Sandbox as SandboxBase, CommandHandle, CommandResult, TimeoutException
 
 
 class _VNCServer:
@@ -12,7 +12,7 @@ class _VNCServer:
         self.__vnc_handle: CommandHandle | None = None
         self.__novnc_handle: CommandHandle | None = None
 
-        self._url = f"https://{desktop.get_host(desktop._novnc_port)}/vnc.html?autoconnect=true"
+        self._url = f"https://{desktop.get_host(desktop._novnc_port)}/vnc.html"
 
         self._novnc_password = self._generate_password()
 
@@ -46,8 +46,9 @@ class _VNCServer:
         characters = string.ascii_letters + string.digits
         return ''.join(secrets.choice(characters) for _ in range(length))
 
-    @property
-    def url(self) -> str:
+    def get_url(self, auto_connect: bool = True) -> str:
+        if auto_connect:
+            return f"{self._url}?autoconnect=true"
         return self._url
     
     @property
@@ -59,11 +60,11 @@ class _VNCServer:
         
         self.__vnc_handle = self.__desktop.commands.run(self._vnc_command, background=True)
         if not self._wait_for_port(self.__desktop._vnc_port):
-            raise TimeoutError("Could not start VNC server")
+            raise TimeoutException("Could not start VNC server")
 
         self.__vnc_handle = self.__desktop.commands.run(self._novnc_command, background=True)
         if not self._wait_for_port(self.__desktop._novnc_port):
-            raise TimeoutError("Could not start noVNC server")
+            raise TimeoutException("Could not start noVNC server")
 
     def stop(self) -> None:
         if self.__vnc_handle:
@@ -135,21 +136,19 @@ class Desktop(SandboxBase):
         self._novnc_port = novnc_port or 6080
         self._novnc_auth_enabled = enable_novnc_auth
 
-        resolution = resolution or (1024, 768)
-        self.width = resolution[0]
-        self.height = resolution[1]
-        self.dpi = dpi or 96
         self._last_xfce4_pid = None
 
+        width, height = resolution or (1024, 768)
         self.commands.run(
-            f"Xvfb {self._display} -ac -screen 0 {self.width}x{self.height}x24"
-            f" -retro -dpi {self.dpi} -nolisten tcp -nolisten unix",
+            f"Xvfb {self._display} -ac -screen 0 {width}x{height}x24"
+            f" -retro -dpi {dpi or 96} -nolisten tcp -nolisten unix",
             background=True
         )
+
         if not self._wait_and_verify(
-            "xdpyinfo -display :0", lambda r: r.exit_code == 0
+            f"xdpyinfo -display {self._display}", lambda r: r.exit_code == 0
         ):
-            raise TimeoutError("Could not start Xvfb")
+            raise TimeoutException("Could not start Xvfb")
 
         self.__vnc_server = _VNCServer(self)
         self._start_xfce4()
