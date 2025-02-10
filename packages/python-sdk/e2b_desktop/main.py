@@ -1,90 +1,209 @@
-import uuid
-from typing import Literal, Iterator, overload
+import time
+from re import search as re_search
+from shlex import quote as quote_string
+from typing import Callable, Dict, Iterator, Literal, Optional, overload, Tuple
+from uuid import uuid4
 
-from typing import Callable, Optional
-from e2b import Sandbox as SandboxBase
-import requests
+from e2b import Sandbox as SandboxBase, CommandHandle, CommandResult, TimeoutException
 
 
-class Sandbox(SandboxBase):
-    default_template = "desktop"
-    stream_base_url = "https://e2b.dev"
+class _VNCServer:
+    def __init__(self, desktop: "Desktop") -> None:
+        self.__vnc_handle: CommandHandle | None = None
+        self.__novnc_handle: CommandHandle | None = None
 
+        self._url = f"https://{desktop.get_host(desktop._novnc_port)}/vnc.html"
+
+        self._novnc_password = self._generate_password()
+
+        pwd_flag = "-nopw"
+        if desktop._novnc_auth_enabled:
+            desktop.commands.run("mkdir ~/.vnc")
+            desktop.commands.run(f"x11vnc -storepasswd {self._novnc_password} ~/.vnc/passwd")
+            pwd_flag = "-usepw"
+
+        self._vnc_command = (
+            f"x11vnc -display {desktop._display} -forever -wait 50 -shared "
+            f"-rfbport {desktop._vnc_port} {pwd_flag} 2>/tmp/x11vnc_stderr.log"
+        )
+        self._novnc_command = (
+            f"cd /opt/noVNC/utils && ./novnc_proxy --vnc localhost:{desktop._vnc_port} "
+            f"--listen {desktop._novnc_port} --web /opt/noVNC > /tmp/novnc.log 2>&1"
+        )
+
+        self.__desktop = desktop
+
+    def _wait_for_port(self, port: int) -> bool:
+        return self.__desktop._wait_and_verify(
+            f'netstat -tuln | grep ":{port} "', lambda r: r.stdout.strip() != ""
+        )
+    
     @staticmethod
-    def start_video_stream(sandbox: "Sandbox", api_key: str, sandbox_id: str):
+    def _generate_password(length: int = 16) -> str:
+        import secrets
+        import string
 
-        # First we need to get the stream key
-        response = requests.post(
-            f"{Sandbox.stream_base_url}/api/stream/sandbox",
-            headers={
-                "Content-Type": "application/json",
-                "X-API-Key": api_key,
-            },
-            json={"sandboxId": sandbox_id},
-        )
+        characters = string.ascii_letters + string.digits
+        return ''.join(secrets.choice(characters) for _ in range(length))
 
-        if not response.ok:
-            raise Exception(
-                f"Failed to start video stream {response.status_code}: {response.text}"
-            )
+    def get_url(self, auto_connect: bool = True) -> str:
+        if auto_connect:
+            return f"{self._url}?autoconnect=true"
+        return self._url
+    
+    @property
+    def password(self) -> str:
+        return self._novnc_password
 
-        data = response.json()
-        sandbox.video_stream_token = data["token"]
-        command = (
-            "ffmpeg -video_size 1024x768 -f x11grab -i :99 -c:v libx264 -c:a aac -g 50 "
-            "-b:v 4000k -maxrate 4000k -bufsize 8000k -f flv rtmp://global-live.mux.com:5222/app/$STREAM_KEY"
-        )
-        sandbox.commands.run(
-            command,
-            background=True,
-            envs={"STREAM_KEY": data["streamKey"]},
-        )
+    def start(self) -> None:
+        self.stop() # If start is called while the server is already running, we just restart it
+        
+        self.__vnc_handle = self.__desktop.commands.run(self._vnc_command, background=True)
+        if not self._wait_for_port(self.__desktop._vnc_port):
+            raise TimeoutException("Could not start VNC server")
 
-    def __init__(self, *args, video_stream=False, **kwargs):
-        super().__init__(*args, **kwargs)
-        if not self._connection_config.api_key:
-            raise ValueError("API key is required")
+        self.__vnc_handle = self.__desktop.commands.run(self._novnc_command, background=True)
+        if not self._wait_for_port(self.__desktop._novnc_port):
+            raise TimeoutException("Could not start noVNC server")
 
-        if video_stream:
-            self.start_video_stream(
-                self,
-                self._connection_config.api_key,
-                self.sandbox_id,
-            )
+    def stop(self) -> None:
+        if self.__vnc_handle:
+            self.__vnc_handle.kill()
+            self.__vnc_handle = None
+        
+        if self.__novnc_handle:
+            self.__novnc_handle.kill()
+            self.__novnc_handle = None
 
-    def get_video_stream_url(self):
+
+class Desktop(SandboxBase):
+    default_template = "desktop"
+    change_wallpaper_cmd = (
+        "xfconf-query --create -t string -c xfce4-desktop -p "
+        "/backdrop/screen0/monitorscreen/workspace0/last-image -s /usr/share/backgrounds/xfce/wallpaper.png"
+    )
+
+    def __init__(
+        self,
+        resolution: Optional[Tuple[int, int]] = None, 
+        dpi: Optional[int] = None,
+        display: Optional[str] = None,
+        vnc_port: Optional[int] = None,
+        novnc_port: Optional[int] = None,
+        enable_novnc_auth: bool = False,
+        template: Optional[str] = None,
+        timeout: Optional[int] = None,
+        metadata: Optional[Dict[str, str]] = None,
+        envs: Optional[Dict[str, str]] = None,
+        api_key: Optional[str] = None,
+        domain: Optional[str] = None,
+        debug: Optional[bool] = None,
+        sandbox_id: Optional[str] = None,
+        request_timeout: Optional[float] = None,
+    ):
         """
-        Get the video stream URL.
-        """
-        # We already have the token
-        if hasattr(self, "video_stream_token") and self.video_stream_token:
-            return f"{self.stream_base_url}/stream/sandbox/{self.sandbox_id}?token={self.video_stream_token}"
+        Create a new desktop sandbox.
 
-        # In cases like when a user reconnects to the sandbox, we don't have the token yet and need to get it from the server
-        response = requests.get(
-            f"{self.stream_base_url}/api/stream/sandbox/{self.sandbox_id}",
-            headers={
-                "Content-Type": "application/json",
-                "X-API-Key": self._connection_config.api_key,
-            },
+        By default, the sandbox is created from the `desktop` template.
+
+        :param resolution: Startup the desktop with custom screen resolution. Defaults to (1024, 768)
+        :param dpi: Startup the desktop with custom DPI. Defaults to 96
+        :param display: Startup the desktop with custom display. Defaults to ":0"
+        :param vnc_port: Port number for VNC server. Defaults to 5900
+        :param novnc_port: Port number for noVNC server. Defaults to 6080
+        :param enable_novnc_auth: Enable noVNC server authentication. Defaults to False
+        :param template: Sandbox template name or ID
+        :param timeout: Timeout for the sandbox in **seconds**, default to 300 seconds. Maximum time a sandbox can be kept alive is 24 hours (86_400 seconds) for Pro users and 1 hour (3_600 seconds) for Hobby users
+        :param metadata: Custom metadata for the sandbox
+        :param envs: Custom environment variables for the sandbox
+        :param api_key: E2B API Key to use for authentication, defaults to `E2B_API_KEY` environment variable
+        :param domain: E2B domain to use for authentication, defaults to `E2B_DOMAIN` environment variable
+        :param debug: If True, the sandbox will be created in debug mode, defaults to `E2B_DEBUG` environment variable
+        :param sandbox_id: Sandbox ID to connect to, defaults to `E2B_SANDBOX_ID` environment variable
+        :param request_timeout: Timeout for the request in **seconds**
+
+        :return: sandbox instance for the new sandbox
+        """
+        super().__init__(
+            template=template,
+            timeout=timeout,
+            metadata=metadata,
+            envs=envs,
+            api_key=api_key,
+            domain=domain,
+            debug=debug,
+            sandbox_id=sandbox_id,
+            request_timeout=request_timeout,
+        )
+        self._display = display or ":0"
+        self._vnc_port = vnc_port or 5900
+        self._novnc_port = novnc_port or 6080
+        self._novnc_auth_enabled = enable_novnc_auth
+
+        self._last_xfce4_pid = None
+
+        width, height = resolution or (1024, 768)
+        self.commands.run(
+            f"Xvfb {self._display} -ac -screen 0 {width}x{height}x24"
+            f" -retro -dpi {dpi or 96} -nolisten tcp -nolisten unix",
+            background=True
         )
 
-        if not response.ok:
-            raise Exception(
-                f"Failed to get stream token: {response.status_code} {response.reason}"
-            )
+        if not self._wait_and_verify(
+            f"xdpyinfo -display {self._display}", lambda r: r.exit_code == 0
+        ):
+            raise TimeoutException("Could not start Xvfb")
 
-        data = response.json()
-        self.video_stream_token = data["token"]
+        self.__vnc_server = _VNCServer(self)
+        self._start_xfce4()
 
-        return f"{self.stream_base_url}/stream/sandbox/{self.sandbox_id}?token={self.video_stream_token}"
+
+    def _wait_and_verify(
+        self, 
+        cmd: str, 
+        on_result: Callable[[CommandResult], bool],
+        timeout: int = 10,
+        interval: float = 0.5
+    ) -> bool:
+
+        elapsed = 0
+        while elapsed < timeout:
+            if on_result(self.commands.run(cmd)):
+                return True
+            
+            time.sleep(interval)
+            elapsed += interval
+
+        return False
+    
+    def _start_xfce4(self):
+        """
+        Start xfce4 session if logged out or not running.
+        """
+        if self._last_xfce4_pid is None or "[xfce4-session] <defunct>" in (
+            self.commands.run(f"ps aux | grep {self._last_xfce4_pid} | grep -v grep | head -n 1").stdout.strip()
+        ):
+            self._last_xfce4_pid = self.commands.run(
+                "startxfce4", envs={"DISPLAY": self._display}, background=True
+            ).pid
+            self.commands.run(self.change_wallpaper_cmd, envs={"DISPLAY": self._display})
+    
+    def refresh(self):
+        """
+        Restart xfce4 session and VNC server. It can be used If you have been logged out.
+        """
+        self._start_xfce4()
+        self.__vnc_server.start()
+
+    @property
+    def vnc_server(self) -> _VNCServer:
+        return self.__vnc_server
 
     @overload
     def take_screenshot(self, format: Literal["stream"]) -> Iterator[bytes]:
         """
         Take a screenshot and return it as a stream of bytes.
         """
-        ...
 
     @overload
     def take_screenshot(
@@ -94,7 +213,6 @@ class Sandbox(SandboxBase):
         """
         Take a screenshot and return it as a bytearray.
         """
-        ...
 
     def take_screenshot(
         self,
@@ -102,14 +220,13 @@ class Sandbox(SandboxBase):
     ):
         """
         Take a screenshot and return it in the specified format.
+
         :param format: The format of the screenshot. Can be 'bytes', 'blob', or 'stream'.
         :returns: The screenshot in the specified format.
         """
-        screenshot_path = f"/tmp/screenshot-{uuid.uuid4()}.png"
+        screenshot_path = f"/tmp/screenshot-{uuid4()}.png"
 
-        self.commands.run(
-            f"scrot --pointer {screenshot_path}",
-        )
+        self.commands.run(f"scrot --pointer {screenshot_path}", envs={"DISPLAY": self._display})
 
         file = self.files.read(screenshot_path, format=format)
         self.files.remove(screenshot_path)
@@ -119,133 +236,117 @@ class Sandbox(SandboxBase):
         """
         Left click on the current mouse position.
         """
-        return self.pyautogui("pyautogui.click()")
+        self.commands.run("xdotool click 1", envs={"DISPLAY": self._display})
 
     def double_click(self):
         """
         Double left click on the current mouse position.
         """
-        return self.pyautogui("pyautogui.doubleClick()")
+        self.commands.run("xdotool click --repeat 2 1", envs={"DISPLAY": self._display})
 
     def right_click(self):
         """
         Right click on the current mouse position.
         """
-        return self.pyautogui("pyautogui.rightClick()")
+        self.commands.run("xdotool click 3", envs={"DISPLAY": self._display})
 
     def middle_click(self):
         """
         Middle click on the current mouse position.
         """
-        return self.pyautogui("pyautogui.middleClick()")
+        self.commands.run("xdotool click 2", envs={"DISPLAY": self._display})
 
-    def scroll(self, amount: int):
+    def scroll(self, direction: Literal["up", "down"] = "down", amount: int = 1):
         """
         Scroll the mouse wheel by the given amount.
+
+        :param direction: The direction to scroll. Can be "up" or "down".
         :param amount: The amount to scroll.
         """
-        return self.pyautogui(f"pyautogui.scroll({amount})")
+        self.commands.run(
+            f"xdotool click --repeat {amount} {'4' if direction == 'up' else '5'}",
+            envs={"DISPLAY": self._display}
+        )
 
     def move_mouse(self, x: int, y: int):
         """
         Move the mouse to the given coordinates.
+        
         :param x: The x coordinate.
         :param y: The y coordinate.
         """
-        return self.pyautogui(f"pyautogui.moveTo({x}, {y})")
+        self.commands.run(f"xdotool mousemove --sync {x} {y}", envs={"DISPLAY": self._display})
 
-    def get_cursor_position(self):
+    def get_cursor_position(self) -> Optional[tuple[int, int]]:
         """
         Get the current cursor position.
-        :return: A tuple with the x and y coordinates.
-        """
-        # We save the value to a file because stdout contains warnings about Xauthority.
-        self.pyautogui(
-            """
-x, y = pyautogui.position()
-with open("/tmp/cursor_position.txt", "w") as f:
-    f.write(str(x) + " " + str(y))
-"""
-        )
-        # pos is like this: 100 200
-        pos = self.files.read("/tmp/cursor_position.txt")
-        return tuple(map(int, pos.split(" ")))
 
-    def get_screen_size(self):
+        :return: A tuple with the x and y coordinates or None if the cursor is not visible.
+        """
+        result = self.commands.run("xdotool getmouselocation", envs={"DISPLAY": self._display})
+        if output := result.stdout:
+            if groups := re_search( r"x:(\d+)\s+y:(\d+)", output):
+                x, y = groups.group(1), groups.group(2)
+                if x and y:
+                    return int(x), int(y)
+        
+    def get_screen_size(self) -> Optional[tuple[int, int]]:
         """
         Get the current screen size.
-        :return: A tuple with the width and height.
-        """
-        # We save the value to a file because stdout contains warnings about Xauthority.
-        self.pyautogui(
-            """
-width, height = pyautogui.size()
-with open("/tmp/size.txt", "w") as f:
-    f.write(str(width) + " " + str(height))
-"""
-        )
-        # size is like this: 100 200
-        size = self.files.read("/tmp/size.txt")
-        return tuple(map(int, size.split(" ")))
 
-    def write(self, text: str):
+        :return: A tuple with the width and height or None if the screen size is not visible.
+        """
+        result = self.commands.run("xrandr", envs={"DISPLAY": self._display})
+        if output := result.stdout:
+            _match = re_search(r"(\d+x\d+)", output)
+            if _match:
+                return tuple(map(int, _match.group(1).split("x")))  # type: ignore
+
+    def write(self,        
+        text: str,
+        *,
+        chunk_size: int = 25,
+        delay_in_ms: int = 75
+    ) -> None:
         """
         Write the given text at the current cursor position.
+        
         :param text: The text to write.
+        :param chunk_size: The size of each chunk of text to write.
+        :param delay_in_ms: The delay between each chunk of text.
         """
-        return self.pyautogui(f"pyautogui.write({text!r})")
+        def break_into_chunks(text: str, n: int):
+            for i in range(0, len(text), n):
+                yield text[i : i + n]
+
+        for chunk in break_into_chunks(text, chunk_size):
+            self.commands.run(
+                f"xdotool type --delay {delay_in_ms} {quote_string(chunk)}", envs={"DISPLAY": self._display}
+            )
 
     def press(self, key: str):
         """
         Press a key.
+
         :param key: The key to press (e.g. "enter", "space", "backspace", etc.).
         """
-        return self.pyautogui(f"pyautogui.press({key!r})")
+        self.commands.run(f"xdotool key {key}", envs={"DISPLAY": self._display})
 
-    def hotkey(self, *keys):
+    def hotkey(self, key: str):
         """
         Press a hotkey.
-        :param keys: The keys to press (e.g. `hotkey("ctrl", "c")` will press Ctrl+C).
+
+        :param keys: The key to press (e.g. "ctrl+c").
         """
-        return self.pyautogui(f"pyautogui.hotkey({keys!r})")
+        self.press(key)
 
     def open(self, file_or_url: str):
         """
         Open a file or a URL in the default application.
+
         :param file_or_url: The file or URL to open.
         """
-        return self.commands.run(f"xdg-open {file_or_url}", background=True)
+        self.commands.run(f"xdg-open {file_or_url}", background=True, envs={"DISPLAY": self._display})
 
-    @staticmethod
-    def _wrap_pyautogui_code(code: str):
-        return f"""
-import pyautogui
-import os
-import Xlib.display
 
-display = Xlib.display.Display(os.environ["DISPLAY"])
-pyautogui._pyautogui_x11._display = display
-
-{code}
-exit(0)
-"""
-
-    def pyautogui(
-        self,
-        pyautogui_code: str,
-        on_stdout: Optional[Callable[[str], None]] = None,
-        on_stderr: Optional[Callable[[str], None]] = None,
-    ):
-        code_path = f"/tmp/code-{uuid.uuid4()}.py"
-
-        code = self._wrap_pyautogui_code(pyautogui_code)
-
-        self.files.write(code_path, code)
-
-        out = self.commands.run(
-            f"python {code_path}",
-            on_stdout=on_stdout,
-            on_stderr=on_stderr,
-        )
-        self.files.remove(code_path)
-        return out
+Sandbox = Desktop
