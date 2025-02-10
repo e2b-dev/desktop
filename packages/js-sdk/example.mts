@@ -32,7 +32,7 @@ const screenshot = await desktop.takeScreenshot("bytes")
 writeFileSync('1.png', Buffer.from(screenshot));
 
 
-for (let i = 0; i < 1; i++) {
+for (let i = 0; i < 20; i++) {
   const x = Math.floor(Math.random() * 1024);
   const y = Math.floor(Math.random() * 768);
   await desktop.moveMouse(x, y);

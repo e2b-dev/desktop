@@ -75,8 +75,5 @@ RUN git clone --branch v1.5.0 https://github.com/novnc/noVNC.git /opt/noVNC && \
     git clone --branch v0.12.0 https://github.com/novnc/websockify /opt/noVNC/utils/websockify && \
     ln -s /opt/noVNC/vnc.html /opt/noVNC/index.html
 
-# Set custom wallpaper
-RUN mkdir -p /usr/share/backgrounds/xfce
-COPY ./wallpaper.png /usr/share/backgrounds/xfce
-RUN mkdir -p /root/.config/xfce4/xfconf/xfce-perchannel-xml
-COPY ./xfce4-desktop.dev.xml /root/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml
+# Copy E2B wallpaper
+COPY ./wallpaper.png /usr/share/backgrounds/xfce/wallpaper.png

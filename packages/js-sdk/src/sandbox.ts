@@ -65,6 +65,10 @@ export class Desktop extends SandboxBase {
   readonly novncPort: number;
   readonly novncAuthEnabled: boolean;
   readonly vncServer: VNCServer;
+  private readonly changeWallpaperCmd: string = (
+    `xfconf-query --create -t string -c xfce4-desktop -p ` +
+    `/backdrop/screen0/monitorscreen/workspace0/last-image -s /usr/share/backgrounds/xfce/wallpaper.png`
+  )
 
   /**
    * Use {@link Sandbox.create} to create a new Sandbox instead.
@@ -206,6 +210,7 @@ export class Desktop extends SandboxBase {
         "startxfce4", { envs: { DISPLAY: this.display }, background: true }
       );
       this.lastXfce4Pid = result.pid;
+      await this.commands.run(this.changeWallpaperCmd, { envs: { DISPLAY: this.display } });
     }
   }
 

@@ -78,6 +78,10 @@ class _VNCServer:
 
 class Desktop(SandboxBase):
     default_template = "desktop"
+    change_wallpaper_cmd = (
+        "xfconf-query --create -t string -c xfce4-desktop -p "
+        "/backdrop/screen0/monitorscreen/workspace0/last-image -s /usr/share/backgrounds/xfce/wallpaper.png"
+    )
 
     def __init__(
         self,
@@ -182,6 +186,7 @@ class Desktop(SandboxBase):
             self._last_xfce4_pid = self.commands.run(
                 "startxfce4", envs={"DISPLAY": self._display}, background=True
             ).pid
+            self.commands.run(self.change_wallpaper_cmd, envs={"DISPLAY": self._display})
     
     def refresh(self):
         """
