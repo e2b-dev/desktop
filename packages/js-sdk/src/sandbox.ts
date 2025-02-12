@@ -1,4 +1,4 @@
-import { Sandbox as SandboxBase, SandboxOpts as SandboxOptsBase, CommandHandle, CommandResult, ConnectionConfig, TimeoutError } from 'e2b'
+import { Sandbox as SandboxBase, SandboxOpts as SandboxOptsBase, CommandHandle, CommandResult, CommandExitError, ConnectionConfig, TimeoutError } from 'e2b'
 
 import { generateRandomString } from './utils'
 
@@ -186,8 +186,15 @@ export class Desktop extends SandboxBase {
     let elapsed = 0;
 
     while (elapsed < timeout) {
-      if (onResult(await this.commands.run(cmd))) {
-        return true;
+      try {
+        if (onResult(await this.commands.run(cmd))) {
+          return true;
+        }
+      } catch (e) {
+        if (e instanceof CommandExitError) {
+          continue;
+        }
+        throw e;
       }
 
       await new Promise(resolve => setTimeout(resolve, interval * 1000));

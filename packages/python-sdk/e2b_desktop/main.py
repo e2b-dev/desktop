@@ -4,7 +4,7 @@ from shlex import quote as quote_string
 from typing import Callable, Dict, Iterator, Literal, Optional, overload, Tuple
 from uuid import uuid4
 
-from e2b import Sandbox as SandboxBase, CommandHandle, CommandResult, TimeoutException
+from e2b import Sandbox as SandboxBase, CommandHandle, CommandResult, TimeoutException, CommandExitException
 
 
 class _VNCServer:
@@ -168,8 +168,11 @@ class Desktop(SandboxBase):
 
         elapsed = 0
         while elapsed < timeout:
-            if on_result(self.commands.run(cmd)):
-                return True
+            try:
+                if on_result(self.commands.run(cmd)):
+                    return True
+            except CommandExitException:
+                continue
             
             time.sleep(interval)
             elapsed += interval
