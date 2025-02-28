@@ -7,7 +7,7 @@ from e2b_desktop import Desktop
 load_dotenv()
 
 print("Starting desktop sandbox...")
-desktop = Desktop(template="desktop-dev-v2", enable_novnc_auth=True) # Use desktop-dev-v2 If you haven't built desktop-dev
+desktop = Desktop(enable_novnc_auth=True)
 print("Screen size:", desktop.get_screen_size())
 
 desktop.vnc_server.start()

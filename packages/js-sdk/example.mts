@@ -2,19 +2,17 @@ import { config } from 'dotenv'
 
 config()
 import { Desktop } from './dist'
-// import { Desktop } from './src'
 import { writeFileSync } from 'fs';
 
 
 console.log("Starting desktop sandbox...")
-const desktop = await Desktop.create('desktop-dev-v2', { enableNoVncAuth: true })
+const desktop = await Desktop.create()
 console.log("Desktop Sandbox started, ID:", desktop.sandboxId)
 console.log("Screen size:", await desktop.getScreenSize())
 
 await desktop.vncServer.start()
 
 console.log("VNC URL:", desktop.vncServer.getUrl(true))
-console.log("VNC Password:", desktop.vncServer.password)
 
 await new Promise(resolve => setTimeout(resolve, 5000));
 
