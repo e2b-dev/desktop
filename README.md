@@ -7,78 +7,125 @@ Each sandbox is isolated from the others and can be customized with any dependen
 ![Desktop Sandbox](readme-assets/screenshot.png)
 
 ### Example app using Computer Use with Anthropic's Claude
+
 Check out the [example open-source app](https://github.com/e2b-dev/secure-computer-use) in a separate repository.
 
-
 ## 🚀 Getting started
+
 The E2B Desktop Sandbox is built on top of [E2B Sandbox](https://e2b.dev/docs).
 
 ### 1. Get E2B API key
+
 Sign up at [E2B](https://e2b.dev) and get your API key.
 Set environment variable `E2B_API_KEY` with your API key.
 
 ### 2. Install SDK
+
 **Python**
+
 ```bash
 pip install e2b-desktop
 ```
 
 **JavaScript**
+
 ```bash
 npm install @e2b/desktop
 ```
 
 ### 3. Create Desktop Sandbox
+
 **Python**
+
 ```python
 from e2b_desktop import Sandbox
 
+# Basic initialization
 desktop = Sandbox()
+
+# With custom configuration
+desktop = Sandbox(
+    display=":0",  # Custom display (defaults to :0)
+    resolution=(1920, 1080),  # Custom resolution
+    dpi=96,  # Custom DPI
+    novnc_port=6080,  # Custom noVNC port
+    enable_novnc_auth=True  # Enable authentication with an auto-generated password
+)
 ```
 
 **JavaScript**
+
 ```javascript
-import { Sandbox } from '@e2b/desktop'
+import { Sandbox } from "@e2b/desktop";
 
-const desktop = await Sandbox.create()
+// Basic initialization
+const desktop = await Sandbox.create();
+
+// With custom configuration
+const desktop = await Sandbox.create({
+  display: ":0", // Custom display (defaults to :0)
+  resolution: [1920, 1080], // Custom resolution
+  dpi: 96, // Custom DPI
+  novncPort: 6080, // Custom noVNC port
+  enableNoVncAuth: true, // Enable authentication with an auto-generated password
+});
 ```
-
-## Stream virtual desktop screen
-You can enable streaming the desktop screen by passing `videoStream: true` to the `Sandbox.create` function in JavaScript and `video_stream=True` to the `Sandbox` constructor in Python.
-
-Then call `getVideoStreamUrl` in JS and `get_video_stream_url` method in Python to get the stream URL that will look like this: `https://e2b.dev/stream/sandbox/<sandbox-id>?token=<secret-token>` and open it in your browser.
-
-You'll need to wait a couple of seconds for the stream to buffer the first frames.
-
-**Python**
-```python
-from e2b_desktop import Sandbox
-
-desktop = Sandbox(video_stream=True)
-stream_url = desktop.get_video_stream_url()
-print(stream_url)
-# Open stream_url in your browser
-# You'll need to wait a couple of seconds for the stream to buffer the first frames
-```
-
-**JavaScript**
-```javascript
-import { Sandbox } from '@e2b/desktop'
-
-const desktop = await Sandbox.create({ videoStream: true, onVideoStreamStart: (streamUrl) => {
-  console.log(streamUrl)
-}})
-// Open streamUrl in your browser
-// You'll need to wait a couple of seconds for the stream to buffer the first frames
-```
-
-![Desktop Sandbox](readme-assets/video-stream.png)
 
 ## Features
+
+### VNC Integration
+
+**Python**
+
+```python
+from e2b_desktop import Sandbox
+desktop = Sandbox()
+
+# Start VNC server
+desktop.vnc_server.start()
+
+# Get VNC URL
+url = desktop.vnc_server.get_url(auto_connect=True)
+print(url)
+
+# Get VNC password (if authentication is enabled)
+password = desktop.vnc_server.password
+
+# Stop VNC server
+desktop.vnc_server.stop()
+
+# If logged out, restart session and VNC server
+desktop.refresh()
+```
+
+**JavaScript**
+
+```javascript
+import { Sandbox } from "@e2b/desktop";
+
+const desktop = await Sandbox.create();
+
+// Start VNC server
+await desktop.vncServer.start();
+
+// Get VNC URL
+const url = desktop.vncServer.getUrl(true);
+console.log(url);
+
+// Get VNC password (if authentication is enabled)
+const password = desktop.vncServer.password;
+
+// Stop VNC server
+await desktop.vncServer.stop();
+
+// If logged out, restart session and VNC server
+await desktop.refresh();
+```
 
 ### Mouse control
 
 **Python**
+
 ```python
 from e2b_desktop import Sandbox
 desktop = Sandbox()
@@ -92,31 +139,65 @@ desktop.mouse_move(100, 200) # Move to x, y coordinates
 ```
 
 **JavaScript**
+
 ```javascript
-import { Sandbox } from '@e2b/desktop'
+import { Sandbox } from "@e2b/desktop";
 
-const desktop = await Sandbox.create()
+const desktop = await Sandbox.create();
 
-await desktop.doubleClick()
-await desktop.leftClick()
-await desktop.rightClick()
-await desktop.middleClick()
-await desktop.scroll(10) // Scroll by the amount. Positive for up, negative for down.
-await desktop.moveMouse(100, 200) // Move to x, y coordinates
+await desktop.doubleClick();
+await desktop.leftClick();
+await desktop.rightClick();
+await desktop.middleClick();
+await desktop.scroll(10); // Scroll by the amount. Positive for up, negative for down.
+await desktop.moveMouse(100, 200); // Move to x, y coordinates
 ```
 
 ### Keyboard control
 
 **Python**
+
 ```python
 from e2b_desktop import Sandbox
 desktop = Sandbox()
 
-desktop.write("Hello, world!") # Write text at the current cursor position
-desktop.hotkey("ctrl", "c") # Press ctrl+c
+# Write text at the current cursor position with customizable typing speed
+desktop.write("Hello, world!")  # Default: chunk_size=25, delay_in_ms=75
+desktop.write("Fast typing!", chunk_size=50, delay_in_ms=25)  # Faster typing
+
+# Press individual keys
+desktop.press("enter")
+desktop.press("space")
+desktop.press("backspace")
+
+# Press hotkey combinations
+desktop.hotkey("ctrl+c")  # Copy
+desktop.hotkey("ctrl+v")  # Paste
+```
+
+**JavaScript**
+
+```javascript
+import { Sandbox } from "@e2b/desktop";
+
+const desktop = await Sandbox.create();
+
+// Write text at the current cursor position with customizable typing speed
+await desktop.write("Hello, world!"); // Default: chunkSize=25, delayInMs=75
+await desktop.write("Fast typing!", 50, 25); // Faster typing
+
+// Press individual keys
+await desktop.press("enter");
+await desktop.press("space");
+await desktop.press("backspace");
+
+// Press hotkey combinations
+await desktop.hotkey("ctrl+c"); // Copy
+await desktop.hotkey("ctrl+v"); // Paste
 ```
 
 ### Screenshot
+
 ```python
 from e2b_desktop import Sandbox
 desktop = Sandbox()
@@ -129,18 +210,20 @@ with open("screenshot.png", "wb") as f:
 ```
 
 **JavaScript**
-```javascript
-import { Sandbox } from '@e2b/desktop'
 
-const desktop = await Sandbox.create()
-const image = await desktop.takeScreenshot()
+```javascript
+import { Sandbox } from "@e2b/desktop";
+
+const desktop = await Sandbox.create();
+const image = await desktop.takeScreenshot();
 // Save the image to a file
-fs.writeFileSync("screenshot.png", image)
+fs.writeFileSync("screenshot.png", image);
 ```
 
 ### Open file
 
 **Python**
+
 ```python
 from e2b_desktop import Sandbox
 desktop = Sandbox()
@@ -151,18 +234,21 @@ desktop.open("/home/user/index.js") # Then open it
 ```
 
 **JavaScript**
-```javascript
-import { Sandbox } from '@e2b/desktop'
 
-const desktop = await Sandbox.create()
+```javascript
+import { Sandbox } from "@e2b/desktop";
+
+const desktop = await Sandbox.create();
 
 // Open file with default application
-await desktop.files.write("/home/user/index.js", "console.log('hello')") // First create the file
-await desktop.open("/home/user/index.js") // Then open it
+await desktop.files.write("/home/user/index.js", "console.log('hello')"); // First create the file
+await desktop.open("/home/user/index.js"); // Then open it
 ```
 
 ### Run any bash commands
+
 **Python**
+
 ```python
 from e2b_desktop import Sandbox
 desktop = Sandbox()
@@ -173,45 +259,18 @@ print(out)
 ```
 
 **JavaScript**
-```javascript
-import { Sandbox } from '@e2b/desktop'
 
-const desktop = await Sandbox.create()
+```javascript
+import { Sandbox } from "@e2b/desktop";
+
+const desktop = await Sandbox.create();
 
 // Run any bash command
-const out = await desktop.commands.run("ls -la /home/user")
-console.log(out)
+const out = await desktop.commands.run("ls -la /home/user");
+console.log(out);
 ```
-
-### Run PyAutoGUI commands
-**Python**
-```python
-from e2b_desktop import Sandbox
-desktop = Sandbox()
-
-# Run any PyAutoGUI command
-desktop.pyautogui("pyautogui.click()")
-```
-
-**JavaScript**
-```javascript
-import { Sandbox } from '@e2b/desktop'
-
-const desktop = await Sandbox.create()
-
-// Run any PyAutoGUI command
-await desktop.runPyautoguiCode("pyautogui.click()")
-```
-
-<!-- ### Customization
-```python
-from e2b_desktop import Sandbox
-desktop = Sandbox()
-``` -->
 
 ## Under the hood
-You can use [PyAutoGUI](https://pyautogui.readthedocs.io/en/latest/) to control the whole environment programmatically.
 
 The desktop-like environment is based on Linux and [Xfce](https://www.xfce.org/) at the moment. We chose Xfce because it's a fast and lightweight environment that's also popular and actively supported. However, this Sandbox template is fully customizable and you can create your own desktop environment.
 Check out the sandbox template's code [here](./template/).
-
