@@ -204,13 +204,6 @@ class Sandbox(SandboxBase):
                 "startxfce4", envs={"DISPLAY": self._display}, background=True
             ).pid
             self.commands.run(self.change_wallpaper_cmd, envs={"DISPLAY": self._display})
-    
-    def refresh(self):
-        """
-        Restart xfce4 session and VNC server. It can be used If you have been logged out.
-        """
-        self._start_xfce4()
-        self.__vnc_server.start()
 
     @property
     def stream(self) -> _VNCServer:

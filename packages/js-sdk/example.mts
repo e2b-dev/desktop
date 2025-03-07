@@ -18,9 +18,6 @@ console.log("Stream URL:", desktop.stream.getUrl())
 
 await new Promise(resolve => setTimeout(resolve, 5000));
 
-// If you have logged out from the desktop, you can restart the session and stream using:
-// await desktop.refresh()
-
 console.log("Moving mouse to 'Applications' and clicking...")
 await desktop.moveMouse(100, 100)
 await desktop.leftClick()

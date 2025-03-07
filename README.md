@@ -89,9 +89,6 @@ print(url)
 
 # Stop the stream
 desktop.stream.stop()
-
-# If logged out, restart session and stream
-desktop.refresh()
 ```
 
 **JavaScript**
@@ -113,9 +110,6 @@ console.log(url);
 
 // Stop the stream
 await desktop.stream.stop();
-
-// If logged out, restart session and stream
-await desktop.refresh();
 ```
 
 ### Mouse control

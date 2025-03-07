@@ -16,9 +16,6 @@ print("Stream URL:", desktop.stream.get_url())
 
 input("Press enter to continue...")
 
-# If you have logged out from the desktop, you can restart the session and stream using:
-# desktop.refresh()
-
 print("Desktop Sandbox started, ID:", desktop.sandbox_id)
 
 screenshot = desktop.screenshot(format="bytes")

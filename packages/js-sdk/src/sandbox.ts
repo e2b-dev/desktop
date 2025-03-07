@@ -216,14 +216,6 @@ export class Sandbox extends SandboxBase {
   }
 
   /**
-   * Restart xfce4 session and VNC server. It can be used If you have been logged out.
-   */
-  async refresh(): Promise<void> {
-    await this.startXfce4();
-    await this.stream.start();
-  }
-
-  /**
    * Take a screenshot and save it to the given name.
    * @param format - The format of the screenshot.
    * @returns A Uint8Array bytes representation of the screenshot.
