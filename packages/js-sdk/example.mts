@@ -6,13 +6,13 @@ import { writeFileSync } from 'fs';
 
 
 console.log("Starting desktop sandbox...")
-const desktop = await Sandbox.create({
-  enableStreamAuth: true,
-})
+const desktop = await Sandbox.create()
 console.log("Desktop Sandbox started, ID:", desktop.sandboxId)
 console.log("Screen size:", await desktop.getScreenSize())
 
-await desktop.stream.start()
+await desktop.stream.start({
+  enableAuth: true
+})
 
 console.log("Stream URL:", desktop.stream.getUrl())
 

@@ -7,10 +7,10 @@ from e2b_desktop import Sandbox
 load_dotenv()
 
 print("Starting desktop sandbox...")
-desktop = Sandbox(enable_stream_auth=True)
+desktop = Sandbox()
 print("Screen size:", desktop.get_screen_size())
 
-desktop.stream.start()
+desktop.stream.start(enable_auth=True)
 
 print("Stream URL:", desktop.stream.get_url())
 

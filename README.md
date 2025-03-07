@@ -48,8 +48,6 @@ desktop = Sandbox(
     display=":0",  # Custom display (defaults to :0)
     resolution=(1920, 1080),  # Custom resolution
     dpi=96,  # Custom DPI
-    stream_port=6080,  # Custom HTTPS port for streaming
-    enable_stream_auth=True  # Enable authentication with an auto-generated password
 )
 ```
 
@@ -66,8 +64,6 @@ const desktop = await Sandbox.create({
   display: ":0", // Custom display (defaults to :0)
   resolution: [1920, 1080], // Custom resolution
   dpi: 96, // Custom DPI
-  streamPort: 6080, // Custom HTTPS port for streaming
-  enableStreamAuth: true, // Enable authentication with an auto-generated password
 });
 ```
 
@@ -82,7 +78,10 @@ from e2b_desktop import Sandbox
 desktop = Sandbox()
 
 # Start the stream
-desktop.stream.start()
+desktop.stream.start(
+    port=6080,  # Custom HTTPS port for streaming
+    enable_auth=True  # Enable authentication with an auto-generated password
+)
 
 # Get stream URL
 url = desktop.stream.get_url()
@@ -103,7 +102,10 @@ import { Sandbox } from "@e2b/desktop";
 const desktop = await Sandbox.create();
 
 // Start the stream
-await desktop.stream.start();
+await desktop.stream.start({
+  port: 6080, // Custom HTTPS port for streaming
+  enableAuth: true, // Enable authentication with an auto-generated password
+});
 
 // Get stream URL
 const url = desktop.stream.getUrl();

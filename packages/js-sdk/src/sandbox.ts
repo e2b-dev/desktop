@@ -47,13 +47,13 @@ export interface SandboxOpts extends SandboxOptsBase {
    * Port number for the noVNC proxy server.
    * @type {number}
    */
-  streamPort?: number
+  port?: number
 
   /**
    * Whether to enable authentication for noVNC connections.
    * @type {boolean}
    */
-  enableStreamAuth?: boolean
+  enableAuth?: boolean
 }
 
 
@@ -61,9 +61,6 @@ export class Sandbox extends SandboxBase {
   protected static override readonly defaultTemplate: string = 'desktop'
   private lastXfce4Pid: number | null = null;
   readonly display: string;
-  readonly vncPort: number;
-  readonly streamPort: number;
-  readonly novncAuthEnabled: boolean;
   readonly stream: VNCServer;
   private readonly changeWallpaperCmd: string = (
     `xfconf-query --create -t string -c xfce4-desktop -p ` +
@@ -84,9 +81,6 @@ export class Sandbox extends SandboxBase {
   }) {
     super(opts);
     this.display = opts.display || ':0';
-    this.vncPort = opts.vncPort || 5900;
-    this.streamPort = opts.streamPort || 6080;
-    this.novncAuthEnabled = opts.enableStreamAuth || false;
     this.lastXfce4Pid = null;
     this.stream = new VNCServer(this);
   }
@@ -424,11 +418,20 @@ export class Sandbox extends SandboxBase {
   }
 }
 
+interface VNCServerOptions {
+  vncPort?: number;
+  port?: number;
+  enableAuth?: boolean;
+}
 
+// Modified VNCServer class
 class VNCServer {
+  private vncPort: number = 5900;
+  private port: number = 6080;
+  private novncAuthEnabled: boolean = false;
+  private url: URL | null = null;
   private vncHandle: CommandHandle | null = null;
   private novncHandle: CommandHandle | null = null;
-  private readonly url: URL;
   private readonly password: string;
   private vncCommand: string = "";
   private readonly novncCommand: string;
@@ -436,12 +439,11 @@ class VNCServer {
 
   constructor(desktop: Sandbox) {
     this.desktop = desktop;
-    this.url = new URL(`https://${desktop.getHost(desktop.streamPort)}/vnc.html`);
     this.password = generateRandomString();
 
     this.novncCommand = (
-      `cd /opt/noVNC/utils && ./novnc_proxy --vnc localhost:${desktop.vncPort} ` +
-      `--listen ${desktop.streamPort} --web /opt/noVNC > /tmp/novnc.log 2>&1`
+      `cd /opt/noVNC/utils && ./novnc_proxy --vnc localhost:${this.vncPort} ` +
+      `--listen ${this.port} --web /opt/noVNC > /tmp/novnc.log 2>&1`
     );
   }
 
@@ -450,7 +452,7 @@ class VNCServer {
    */
   private async setVncCommand(): Promise<void> {
     let pwdFlag = "-nopw";
-    if (this.desktop.novncAuthEnabled) {
+    if (this.novncAuthEnabled) {
       await this.desktop.commands.run("mkdir ~/.vnc");
       await this.desktop.commands.run(`x11vnc -storepasswd ${this.password} ~/.vnc/passwd`);
       pwdFlag = "-usepw";
@@ -458,7 +460,7 @@ class VNCServer {
 
     this.vncCommand = (
       `x11vnc -display ${this.desktop.display} -forever -wait 50 -shared ` +
-      `-rfbport ${this.desktop.vncPort} ${pwdFlag} 2>/tmp/x11vnc_stderr.log`
+      `-rfbport ${this.vncPort} ${pwdFlag} 2>/tmp/x11vnc_stderr.log`
     );
   }
 
@@ -474,11 +476,15 @@ class VNCServer {
    * @returns The URL to connect to the VNC server.
    */
   public getUrl(autoConnect: boolean = true): string {
+    if (this.url === null) {
+      throw new Error('Server is not running');
+    }
+
     let url = new URL(this.url);
     if (autoConnect) {
       url.searchParams.set('autoconnect', 'true');
     }
-    if (this.desktop.novncAuthEnabled) {
+    if (this.novncAuthEnabled) {
       url.searchParams.set("password", this.password);
     }
     return url.toString()
@@ -487,12 +493,16 @@ class VNCServer {
   /**
    * Start the VNC server.
    */
-  public async start(): Promise<void> {
-
+  public async start(opts: VNCServerOptions = {}): Promise<void> {
     // If both servers are already running, throw an error.
     if (this.vncHandle !== null && this.novncHandle !== null) {
       throw new Error('Server is already running');
     }
+
+    this.vncPort = opts.vncPort ?? this.vncPort;
+    this.port = opts.port ?? this.port;
+    this.novncAuthEnabled = opts.enableAuth ?? this.novncAuthEnabled;
+    this.url = new URL(`https://${this.desktop.getHost(this.port)}/vnc.html`);
 
     // Stop both servers in case one of them is running.
     await this.stop();
@@ -501,12 +511,12 @@ class VNCServer {
       await this.setVncCommand();
     }
     this.vncHandle = await this.desktop.commands.run(this.vncCommand, { background: true });
-    if (!await this.waitForPort(this.desktop.vncPort)) {
+    if (!await this.waitForPort(this.vncPort)) {
       throw new Error("Could not start VNC server");
     }
 
     this.novncHandle = await this.desktop.commands.run(this.novncCommand, { background: true });
-    if (!await this.waitForPort(this.desktop.streamPort)) {
+    if (!await this.waitForPort(this.port)) {
       throw new Error("Could not start noVNC server");
     }
   }

@@ -11,25 +11,14 @@ class _VNCServer:
     def __init__(self, desktop: "Sandbox") -> None:
         self.__vnc_handle: CommandHandle | None = None
         self.__novnc_handle: CommandHandle | None = None
+        
+        self._vnc_port = 5900
+        self._port = 6080
+        self._novnc_auth_enabled = False
 
-        self._url = f"https://{desktop.get_host(desktop._stream_port)}/vnc.html"
+        self._url = f"https://{desktop.get_host(self._port)}/vnc.html"
 
         self._novnc_password = self._generate_password()
-
-        pwd_flag = "-nopw"
-        if desktop._novnc_auth_enabled:
-            desktop.commands.run("mkdir ~/.vnc")
-            desktop.commands.run(f"x11vnc -storepasswd {self._novnc_password} ~/.vnc/passwd")
-            pwd_flag = "-usepw"
-
-        self._vnc_command = (
-            f"x11vnc -display {desktop._display} -forever -wait 50 -shared "
-            f"-rfbport {desktop._vnc_port} {pwd_flag} 2>/tmp/x11vnc_stderr.log"
-        )
-        self._novnc_command = (
-            f"cd /opt/noVNC/utils && ./novnc_proxy --vnc localhost:{desktop._vnc_port} "
-            f"--listen {desktop._stream_port} --web /opt/noVNC > /tmp/novnc.log 2>&1"
-        )
 
         self.__desktop = desktop
 
@@ -50,7 +39,7 @@ class _VNCServer:
         params = []
         if auto_connect:
             params.append("autoconnect=true")
-        if self.__desktop._novnc_auth_enabled:
+        if self._novnc_auth_enabled:
             params.append(f"password={self._novnc_password}")
         if params:
             return f"{self._url}?{'&'.join(params)}"
@@ -60,20 +49,45 @@ class _VNCServer:
     def password(self) -> str:
         return self._novnc_password
 
-    def start(self) -> None:
+    def start(self, vnc_port: Optional[int] = None, port: Optional[int] = None, enable_auth: bool = False) -> None:
         # If both servers are already running, throw an error
         if self.__vnc_handle is not None and self.__novnc_handle is not None:
             raise RuntimeError('Server is already running')
 
         # Stop servers in case one of them is running
         self.stop()
+        
+        # Update parameters if provided
+        self._vnc_port = vnc_port or self._vnc_port
+        self._port = port or self._port
+        self._novnc_auth_enabled = enable_auth or self._novnc_auth_enabled
+        
+        # Update URL with new port
+        self._url = f"https://{self.__desktop.get_host(self._port)}/vnc.html"
+        
+        # Set up VNC command
+        pwd_flag = "-nopw"
+        if self._novnc_auth_enabled:
+            self.__desktop.commands.run("mkdir ~/.vnc")
+            self.__desktop.commands.run(f"x11vnc -storepasswd {self._novnc_password} ~/.vnc/passwd")
+            pwd_flag = "-usepw"
 
-        self.__vnc_handle = self.__desktop.commands.run(self._vnc_command, background=True)
-        if not self._wait_for_port(self.__desktop._vnc_port):
+        vnc_command = (
+            f"x11vnc -display {self.__desktop._display} -forever -wait 50 -shared "
+            f"-rfbport {self._vnc_port} {pwd_flag} 2>/tmp/x11vnc_stderr.log"
+        )
+        
+        novnc_command = (
+            f"cd /opt/noVNC/utils && ./novnc_proxy --vnc localhost:{self._vnc_port} "
+            f"--listen {self._port} --web /opt/noVNC > /tmp/novnc.log 2>&1"
+        )
+
+        self.__vnc_handle = self.__desktop.commands.run(vnc_command, background=True)
+        if not self._wait_for_port(self._vnc_port):
             raise TimeoutException("Could not start VNC server")
 
-        self.__vnc_handle = self.__desktop.commands.run(self._novnc_command, background=True)
-        if not self._wait_for_port(self.__desktop._stream_port):
+        self.__novnc_handle = self.__desktop.commands.run(novnc_command, background=True)
+        if not self._wait_for_port(self._port):
             raise TimeoutException("Could not start noVNC server")
 
     def stop(self) -> None:
@@ -98,9 +112,6 @@ class Sandbox(SandboxBase):
         resolution: Optional[Tuple[int, int]] = None, 
         dpi: Optional[int] = None,
         display: Optional[str] = None,
-        vnc_port: Optional[int] = None,
-        stream_port: Optional[int] = None,
-        enable_stream_auth: bool = False,
         template: Optional[str] = None,
         timeout: Optional[int] = None,
         metadata: Optional[Dict[str, str]] = None,
@@ -119,9 +130,6 @@ class Sandbox(SandboxBase):
         :param resolution: Startup the desktop with custom screen resolution. Defaults to (1024, 768)
         :param dpi: Startup the desktop with custom DPI. Defaults to 96
         :param display: Startup the desktop with custom display. Defaults to ":0"
-        :param vnc_port: Port number for VNC server. Defaults to 5900
-        :param stream_port: Port number for noVNC server. Defaults to 6080
-        :param enable_stream_auth: Enable noVNC server authentication. Defaults to False
         :param template: Sandbox template name or ID
         :param timeout: Timeout for the sandbox in **seconds**, default to 300 seconds. Maximum time a sandbox can be kept alive is 24 hours (86_400 seconds) for Pro users and 1 hour (3_600 seconds) for Hobby users
         :param metadata: Custom metadata for the sandbox
@@ -146,10 +154,6 @@ class Sandbox(SandboxBase):
             request_timeout=request_timeout,
         )
         self._display = display or ":0"
-        self._vnc_port = vnc_port or 5900
-        self._stream_port = stream_port or 6080
-        self._novnc_auth_enabled = enable_stream_auth
-
         self._last_xfce4_pid = None
 
         width, height = resolution or (1024, 768)
