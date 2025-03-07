@@ -47,8 +47,13 @@ class _VNCServer:
         return ''.join(secrets.choice(characters) for _ in range(length))
 
     def get_url(self, auto_connect: bool = True) -> str:
+        params = []
         if auto_connect:
-            return f"{self._url}?autoconnect=true"
+            params.append("autoconnect=true")
+        if self.__desktop._novnc_auth_enabled:
+            params.append(f"password={self._novnc_password}")
+        if params:
+            return f"{self._url}?{'&'.join(params)}"
         return self._url
     
     @property

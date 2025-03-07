@@ -471,6 +471,9 @@ class VNCServer {
     if (autoConnect) {
       url.searchParams.set('autoconnect', 'true');
     }
+    if (this.desktop.novncAuthEnabled) {
+      url.searchParams.set("password", this.password);
+    }
     return url.toString()
   }
 
