@@ -85,7 +85,7 @@ desktop = Sandbox()
 desktop.vnc_server.start()
 
 # Get VNC URL
-url = desktop.vnc_server.get_url(auto_connect=True)
+url = desktop.vnc_server.get_url()
 print(url)
 
 # Get VNC password (if authentication is enabled)
@@ -109,7 +109,7 @@ const desktop = await Sandbox.create();
 await desktop.vncServer.start();
 
 // Get VNC URL
-const url = desktop.vncServer.getUrl(true);
+const url = desktop.vncServer.getUrl();
 console.log(url);
 
 // Get VNC password (if authentication is enabled)

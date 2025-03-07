@@ -12,7 +12,7 @@ print("Screen size:", desktop.get_screen_size())
 
 desktop.vnc_server.start()
 
-print("VNC URL:", desktop.vnc_server.get_url(auto_connect=True))
+print("VNC URL:", desktop.vnc_server.get_url())
 print("VNC Password:", desktop.vnc_server.password)
 
 input("Press enter to continue...")

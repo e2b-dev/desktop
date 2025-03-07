@@ -12,7 +12,7 @@ console.log("Screen size:", await desktop.getScreenSize())
 
 await desktop.vncServer.start()
 
-console.log("VNC URL:", desktop.vncServer.getUrl(true))
+console.log("VNC URL:", desktop.vncServer.getUrl())
 
 await new Promise(resolve => setTimeout(resolve, 5000));
 
