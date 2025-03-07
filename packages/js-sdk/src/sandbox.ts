@@ -429,7 +429,7 @@ class VNCServer {
   private vncHandle: CommandHandle | null = null;
   private novncHandle: CommandHandle | null = null;
   private readonly url: URL;
-  readonly password: string;
+  private readonly password: string;
   private vncCommand: string = "";
   private readonly novncCommand: string;
   private readonly desktop: Desktop;
