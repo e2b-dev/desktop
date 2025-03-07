@@ -414,14 +414,6 @@ export class Desktop extends SandboxBase {
   }
 
   /**
-   * Press a hotkey.
-   * @param key - The key to press (e.g. "ctrl+c").
-   */
-  async hotkey(key: string): Promise<void> {
-    await this.press(key);
-  }
-
-  /**
    * Open a file or a URL in the default application.
    * @param fileOrUrl - The file or URL to open.
    */

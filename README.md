@@ -159,14 +159,11 @@ desktop = Sandbox()
 desktop.write("Hello, world!")  # Default: chunk_size=25, delay_in_ms=75
 desktop.write("Fast typing!", chunk_size=50, delay_in_ms=25)  # Faster typing
 
-# Press individual keys
+# Press keys
 desktop.press("enter")
 desktop.press("space")
 desktop.press("backspace")
-
-# Press hotkey combinations
-desktop.hotkey("ctrl+c")  # Copy
-desktop.hotkey("ctrl+v")  # Paste
+desktop.press("ctrl+c")
 ```
 
 **JavaScript**
@@ -180,14 +177,11 @@ const desktop = await Sandbox.create();
 await desktop.write("Hello, world!"); // Default: chunkSize=25, delayInMs=75
 await desktop.write("Fast typing!", 50, 25); // Faster typing
 
-// Press individual keys
+// Press keys
 await desktop.press("enter");
 await desktop.press("space");
 await desktop.press("backspace");
-
-// Press hotkey combinations
-await desktop.hotkey("ctrl+c"); // Copy
-await desktop.hotkey("ctrl+v"); // Paste
+await desktop.press("ctrl+c"); // Copy
 ```
 
 ### Screenshot

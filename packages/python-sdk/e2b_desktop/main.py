@@ -352,14 +352,6 @@ class Desktop(SandboxBase):
         """
         self.commands.run(f"xdotool key {key}", envs={"DISPLAY": self._display})
 
-    def hotkey(self, key: str):
-        """
-        Press a hotkey.
-
-        :param keys: The key to press (e.g. "ctrl+c").
-        """
-        self.press(key)
-
     def open(self, file_or_url: str):
         """
         Open a file or a URL in the default application.
