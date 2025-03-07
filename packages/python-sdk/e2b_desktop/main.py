@@ -61,8 +61,13 @@ class _VNCServer:
         return self._novnc_password
 
     def start(self) -> None:
-        self.stop() # If start is called while the server is already running, we just restart it
-        
+        # If both servers are already running, throw an error
+        if self.__vnc_handle is not None and self.__novnc_handle is not None:
+            raise RuntimeError('Server is already running')
+
+        # Stop servers in case one of them is running
+        self.stop()
+
         self.__vnc_handle = self.__desktop.commands.run(self._vnc_command, background=True)
         if not self._wait_for_port(self.__desktop._vnc_port):
             raise TimeoutException("Could not start VNC server")

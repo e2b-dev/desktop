@@ -488,7 +488,14 @@ class VNCServer {
    * Start the VNC server.
    */
   public async start(): Promise<void> {
-    await this.stop(); // If start is called while the server is already running, we just restart it
+
+    // If both servers are already running, throw an error.
+    if (this.vncHandle !== null && this.novncHandle !== null) {
+      throw new Error('Server is already running');
+    }
+
+    // Stop both servers in case one of them is running.
+    await this.stop();
 
     if (this.vncCommand === "") {
       await this.setVncCommand();
