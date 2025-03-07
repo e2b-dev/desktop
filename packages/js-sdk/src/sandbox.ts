@@ -314,7 +314,8 @@ export class Desktop extends SandboxBase {
 
   /**
    * Get the current cursor position.
-   * @returns A object with the x and y coordinates or null if the cursor is not visible.
+   * @returns A object with the x and y coordinates
+   * @throws Error if cursor position cannot be determined
    */
   async getCursorPosition(): Promise<CursorPosition | null> {
     const result = await this.commands.run(
@@ -322,17 +323,24 @@ export class Desktop extends SandboxBase {
     );
 
     const match = result.stdout.match(/x:(\d+)\s+y:(\d+)/);
-    if (match) {
-      const [, x, y] = match;
-      if (x && y) {
-        return { x: parseInt(x), y: parseInt(y) };
-      }
+    if (!match) {
+      throw new Error(
+        `Failed to parse cursor position from output: ${result.stdout}`
+      );
     }
-    return null;
+
+    const [, x, y] = match;
+    if (!x || !y) {
+      throw new Error(`Invalid cursor position values: x=${x}, y=${y}`);
+    }
+
+    return { x: parseInt(x), y: parseInt(y) };
   }
+
   /**
    * Get the current screen size.
-   * @returns An {@link ScreenSize} object or null if the screen size is not visible.
+   * @returns An {@link ScreenSize} object
+   * @throws Error if screen size cannot be determined
    */
   async getScreenSize(): Promise<ScreenSize | null> {
     const result = await this.commands.run(
@@ -340,11 +348,18 @@ export class Desktop extends SandboxBase {
     );
 
     const match = result.stdout.match(/(\d+x\d+)/);
-    if (match) {
-      const [width, height] = match[1].split('x').map(Number);
-      return { width, height };
+    if (!match) {
+      throw new Error(
+        `Failed to parse screen size from output: ${result.stdout}`
+      );
     }
-    return null;
+
+    try {
+      const [width, height] = match[1].split("x").map(val => parseInt(val));
+      return { width, height };
+    } catch (error) {
+      throw new Error(`Invalid screen size format: ${match[1]}`);
+    }
   }
 
   private *breakIntoChunks(text: string, n: number): Generator<string> {

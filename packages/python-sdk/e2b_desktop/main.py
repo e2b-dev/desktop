@@ -285,30 +285,42 @@ class Desktop(SandboxBase):
         """
         self.commands.run(f"xdotool mousemove --sync {x} {y}", envs={"DISPLAY": self._display})
 
-    def get_cursor_position(self) -> Optional[tuple[int, int]]:
+    def get_cursor_position(self) -> tuple[int, int]:
         """
         Get the current cursor position.
 
-        :return: A tuple with the x and y coordinates or None if the cursor is not visible.
+        :return: A tuple with the x and y coordinates
+        :raises RuntimeError: If the cursor position cannot be determined
         """
         result = self.commands.run("xdotool getmouselocation", envs={"DISPLAY": self._display})
-        if output := result.stdout:
-            if groups := re_search( r"x:(\d+)\s+y:(\d+)", output):
-                x, y = groups.group(1), groups.group(2)
-                if x and y:
-                    return int(x), int(y)
+            
+        groups = re_search(r"x:(\d+)\s+y:(\d+)", result.stdout)
+        if not groups:
+            raise RuntimeError(f"Failed to parse cursor position from output: {result.stdout}")
+            
+        x, y = groups.group(1), groups.group(2)
+        if not x or not y:
+            raise RuntimeError(f"Invalid cursor position values: x={x}, y={y}")
+            
+        return int(x), int(y)
         
-    def get_screen_size(self) -> Optional[tuple[int, int]]:
+    def get_screen_size(self) -> tuple[int, int]:
         """
         Get the current screen size.
 
-        :return: A tuple with the width and height or None if the screen size is not visible.
+        :return: A tuple with the width and height
+        :raises RuntimeError: If the screen size cannot be determined
         """
         result = self.commands.run("xrandr", envs={"DISPLAY": self._display})
-        if output := result.stdout:
-            _match = re_search(r"(\d+x\d+)", output)
-            if _match:
-                return tuple(map(int, _match.group(1).split("x")))  # type: ignore
+            
+        _match = re_search(r"(\d+x\d+)", result.stdout)
+        if not _match:
+            raise RuntimeError(f"Failed to parse screen size from output: {result.stdout}")
+            
+        try:
+            return tuple(map(int, _match.group(1).split("x")))  # type: ignore
+        except (ValueError, IndexError) as e:
+            raise RuntimeError(f"Invalid screen size format: {_match.group(1)}") from e
 
     def write(self,        
         text: str,
