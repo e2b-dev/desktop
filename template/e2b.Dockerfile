@@ -106,7 +106,7 @@ RUN apt-get update && \
 RUN pip install numpy
 
 # Install noVNC and websockify
-RUN git clone --branch v1.5.0 https://github.com/novnc/noVNC.git /opt/noVNC && \
+RUN git clone --branch e2b-desktop https://github.com/e2b-dev/noVNC.git /opt/noVNC && \
     git clone --branch v0.12.0 https://github.com/novnc/websockify /opt/noVNC/utils/websockify && \
     ln -s /opt/noVNC/vnc.html /opt/noVNC/index.html
 
