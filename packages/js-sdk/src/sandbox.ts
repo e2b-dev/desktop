@@ -57,7 +57,7 @@ export interface SandboxOpts extends SandboxOptsBase {
 }
 
 
-export class Desktop extends SandboxBase {
+export class Sandbox extends SandboxBase {
   protected static override readonly defaultTemplate: string = 'desktop'
   private lastXfce4Pid: number | null = null;
   readonly display: string;
@@ -99,11 +99,11 @@ export class Desktop extends SandboxBase {
    *
    * @example
    * ```ts
-   * const sandbox = await Desktop.create()
+   * const sandbox = await Sandbox.create()
    * ```
-   * @constructs Desktop
+   * @constructs Sandbox
    */
-  static async create<S extends typeof Desktop>(
+  static async create<S extends typeof Sandbox>(
     this: S,
     opts?: SandboxOpts
   ): Promise<InstanceType<S>>
@@ -117,16 +117,16 @@ export class Desktop extends SandboxBase {
    *
    * @example
    * ```ts
-   * const sandbox = await Desktop.create('<template-name-or-id>')
+   * const sandbox = await Sandbox.create('<template-name-or-id>')
    * ```
-   * @constructs Desktop
+   * @constructs Sandbox
    */
-  static async create<S extends typeof Desktop>(
+  static async create<S extends typeof Sandbox>(
     this: S,
     template: string,
     opts?: SandboxOpts
   ): Promise<InstanceType<S>>
-  static async create<S extends typeof Desktop>(
+  static async create<S extends typeof Sandbox>(
     this: S,
     templateOrOpts?: SandboxOpts | string,
     opts?: SandboxOpts
@@ -432,9 +432,9 @@ class VNCServer {
   private readonly password: string;
   private vncCommand: string = "";
   private readonly novncCommand: string;
-  private readonly desktop: Desktop;
+  private readonly desktop: Sandbox;
 
-  constructor(desktop: Desktop) {
+  constructor(desktop: Sandbox) {
     this.desktop = desktop;
     this.url = new URL(`https://${desktop.getHost(desktop.streamPort)}/vnc.html`);
     this.password = generateRandomString();
@@ -526,5 +526,3 @@ class VNCServer {
     }
   }
 }
-
-export class Sandbox extends Desktop { }

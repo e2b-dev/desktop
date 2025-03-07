@@ -1,12 +1,12 @@
 import { config } from 'dotenv'
 
 config()
-import { Desktop } from './dist'
+import { Sandbox } from './dist'
 import { writeFileSync } from 'fs';
 
 
 console.log("Starting desktop sandbox...")
-const desktop = await Desktop.create({
+const desktop = await Sandbox.create({
   enableStreamAuth: true,
 })
 console.log("Desktop Sandbox started, ID:", desktop.sandboxId)

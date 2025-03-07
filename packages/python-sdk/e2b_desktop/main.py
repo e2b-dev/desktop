@@ -8,7 +8,7 @@ from e2b import Sandbox as SandboxBase, CommandHandle, CommandResult, TimeoutExc
 
 
 class _VNCServer:
-    def __init__(self, desktop: "Desktop") -> None:
+    def __init__(self, desktop: "Sandbox") -> None:
         self.__vnc_handle: CommandHandle | None = None
         self.__novnc_handle: CommandHandle | None = None
 
@@ -86,7 +86,7 @@ class _VNCServer:
             self.__novnc_handle = None
 
 
-class Desktop(SandboxBase):
+class Sandbox(SandboxBase):
     default_template = "desktop"
     change_wallpaper_cmd = (
         "xfconf-query --create -t string -c xfce4-desktop -p "
@@ -364,6 +364,3 @@ class Desktop(SandboxBase):
         :param file_or_url: The file or URL to open.
         """
         self.commands.run(f"xdg-open {file_or_url}", background=True, envs={"DISPLAY": self._display})
-
-
-Sandbox = Desktop

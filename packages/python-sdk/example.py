@@ -2,12 +2,12 @@ import time
 import random
 
 from dotenv import load_dotenv
-from e2b_desktop import Desktop
+from e2b_desktop import Sandbox
 
 load_dotenv()
 
 print("Starting desktop sandbox...")
-desktop = Desktop(enable_stream_auth=True)
+desktop = Sandbox(enable_stream_auth=True)
 print("Screen size:", desktop.get_screen_size())
 
 desktop.stream.start()

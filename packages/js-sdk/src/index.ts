@@ -1,3 +1,3 @@
 export * from 'e2b'
 
-export { Desktop, Sandbox } from './sandbox'
+export { Sandbox } from './sandbox'
