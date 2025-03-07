@@ -28,7 +28,7 @@ console.log("Cursor position:", await desktop.getCursorPosition())
 
 await new Promise(resolve => setTimeout(resolve, 1000));
 
-const screenshot = await desktop.takeScreenshot("bytes")
+const screenshot = await desktop.screenshot("bytes")
 writeFileSync('1.png', Buffer.from(screenshot));
 
 

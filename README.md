@@ -191,7 +191,7 @@ from e2b_desktop import Sandbox
 desktop = Sandbox()
 
 # Take a screenshot and save it as "screenshot.png" locally
-image = desktop.take_screenshot()
+image = desktop.screenshot()
 # Save the image to a file
 with open("screenshot.png", "wb") as f:
     f.write(image)
@@ -203,7 +203,7 @@ with open("screenshot.png", "wb") as f:
 import { Sandbox } from "@e2b/desktop";
 
 const desktop = await Sandbox.create();
-const image = await desktop.takeScreenshot();
+const image = await desktop.screenshot();
 // Save the image to a file
 fs.writeFileSync("screenshot.png", image);
 ```

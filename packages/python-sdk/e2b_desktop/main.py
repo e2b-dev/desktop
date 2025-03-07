@@ -208,13 +208,13 @@ class Desktop(SandboxBase):
         return self.__vnc_server
 
     @overload
-    def take_screenshot(self, format: Literal["stream"]) -> Iterator[bytes]:
+    def screenshot(self, format: Literal["stream"]) -> Iterator[bytes]:
         """
         Take a screenshot and return it as a stream of bytes.
         """
 
     @overload
-    def take_screenshot(
+    def screenshot(
         self,
         format: Literal["bytes"],
     ) -> bytearray:
@@ -222,7 +222,7 @@ class Desktop(SandboxBase):
         Take a screenshot and return it as a bytearray.
         """
 
-    def take_screenshot(
+    def screenshot(
         self,
         format: Literal["bytes", "stream"] = "bytes",
     ):

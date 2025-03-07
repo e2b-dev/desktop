@@ -234,24 +234,24 @@ export class Desktop extends SandboxBase {
    * @param format - The format of the screenshot.
    * @returns A Uint8Array bytes representation of the screenshot.
    */
-  async takeScreenshot(): Promise<Uint8Array>
+  async screenshot(): Promise<Uint8Array>
   /**
    * Take a screenshot and save it to the given name.
    * @param format - The format of the screenshot.
    * @returns A Uint8Array bytes representation of the screenshot.
    */
-  async takeScreenshot(format: 'bytes'): Promise<Uint8Array>
+  async screenshot(format: 'bytes'): Promise<Uint8Array>
   /**
    * Take a screenshot and save it to the given name.
    * @returns A Blob representation of the screenshot.
    */
-  async takeScreenshot(format: 'blob'): Promise<Blob>
+  async screenshot(format: 'blob'): Promise<Blob>
   /**
    * Take a screenshot and save it to the given name.
    * @returns A ReadableStream of bytes representation of the screenshot.
    */
-  async takeScreenshot(format: 'stream'): Promise<ReadableStream<Uint8Array>>
-  async takeScreenshot(format: 'bytes' | 'blob' | 'stream' = 'bytes') {
+  async screenshot(format: 'stream'): Promise<ReadableStream<Uint8Array>>
+  async screenshot(format: 'bytes' | 'blob' | 'stream' = 'bytes') {
     const path = `/tmp/screenshot-${generateRandomString()}.png`
     await this.commands.run(`scrot --pointer ${path}`, { envs: { DISPLAY: this.display } })
 

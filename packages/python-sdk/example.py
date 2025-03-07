@@ -21,7 +21,7 @@ input("Press enter to continue...")
 
 print("Desktop Sandbox started, ID:", desktop.sandbox_id)
 
-screenshot = desktop.take_screenshot(format="bytes")
+screenshot = desktop.screenshot(format="bytes")
 
 with open("1.png", "wb") as f:
     f.write(screenshot)
@@ -32,7 +32,7 @@ desktop.left_click()
 print("Cursor position:", desktop.get_cursor_position())
 
 time.sleep(1)
-screenshot = desktop.take_screenshot(format="bytes")
+screenshot = desktop.screenshot(format="bytes")
 with open("2.png", "wb") as f:
     f.write(screenshot)
 

@@ -7,6 +7,6 @@ sandboxTest('get screen size', async ({ sandbox }) => {
 })
 
 sandboxTest('take screenshot', async ({ sandbox }) => {
-  const screenshot = await sandbox.takeScreenshot()
+  const screenshot = await sandbox.screenshot()
   expect(screenshot.length).toBeGreaterThan(0)
 })

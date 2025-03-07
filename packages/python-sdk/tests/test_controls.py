@@ -17,7 +17,7 @@ def images_are_equal(img1, img2):
 
 def test_right_click(sandbox: Sandbox):
     # Capture the initial screenshot
-    initial_screenshot_bytes = sandbox.take_screenshot()
+    initial_screenshot_bytes = sandbox.screenshot()
     initial_image = Image.open(io.BytesIO(initial_screenshot_bytes))
     
     # Get cursor position and perform right click
@@ -26,7 +26,7 @@ def test_right_click(sandbox: Sandbox):
     time.sleep(5)  # Wait for UI to respond
     
     # Capture and process the second screenshot
-    post_click_screenshot_bytes = sandbox.take_screenshot()
+    post_click_screenshot_bytes = sandbox.screenshot()
     post_click_image = Image.open(io.BytesIO(post_click_screenshot_bytes))
     
     # Crop both images around the cursor position
@@ -37,7 +37,7 @@ def test_right_click(sandbox: Sandbox):
     assert not images_are_equal(cropped_image_1, cropped_image_2), "The image around the cursor did not change after right-click."
 
 def test_screenshot(sandbox: Sandbox):
-    image = sandbox.take_screenshot()
+    image = sandbox.screenshot()
     assert image, "Screenshot was not taken successfully"
     
     # Check if the image is a valid image format
