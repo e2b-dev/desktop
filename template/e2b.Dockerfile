@@ -46,17 +46,12 @@ ENV PIP_DEFAULT_TIMEOUT=100 \
     PIP_NO_CACHE_DIR=1 \
     DEBIAN_FRONTEND=noninteractive
 
-RUN echo "export DISPLAY=:99" >> /etc/environment
-
 COPY ./requirements.txt requirements.txt
 RUN pip3 install --no-cache-dir -r requirements.txt
 
 COPY ./45-allow-colord.pkla /etc/polkit-1/localauthority/50-local.d/45-allow-colord.pkla
 
 COPY ./Xauthority /home/user/.Xauthority
-
-COPY ./start-up.sh /
-RUN chmod +x /start-up.sh
 
 RUN apt-get update && \
     apt-get -y upgrade && \
@@ -106,3 +101,14 @@ RUN apt-get update && \
     pcmanfm \
     unzip && \
     apt-get clean
+
+# Install numpy which is used by websockify: https://github.com/novnc/websockify/issues/337
+RUN pip install numpy
+
+# Install noVNC and websockify
+RUN git clone --branch v1.5.0 https://github.com/novnc/noVNC.git /opt/noVNC && \
+    git clone --branch v0.12.0 https://github.com/novnc/websockify /opt/noVNC/utils/websockify && \
+    ln -s /opt/noVNC/vnc.html /opt/noVNC/index.html
+
+# Copy E2B desktop wallpaper
+COPY ./wallpaper.png /usr/share/backgrounds/xfce/wallpaper.png
