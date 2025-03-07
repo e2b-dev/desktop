@@ -134,7 +134,7 @@ export class Sandbox extends SandboxBase {
 
     let sbx
     if (config.debug) {
-      sbx = new this({ sandboxId: 'debug_sandbox_id', ...sandboxOpts, ...config }) as InstanceType<S>
+      sbx = new this({ sandboxId: 'desktop', ...sandboxOpts, ...config }) as InstanceType<S>
     } else {
       const sandbox = await this.createSandbox(
         template,
