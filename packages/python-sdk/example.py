@@ -7,7 +7,7 @@ from e2b_desktop import Sandbox
 load_dotenv()
 
 print("Starting desktop sandbox...")
-desktop = Sandbox()
+desktop = Sandbox(template="hnvd1lpiwnmcvzz9hfih")
 print("Screen size:", desktop.get_screen_size())
 
 desktop.stream.start(enable_auth=True)
