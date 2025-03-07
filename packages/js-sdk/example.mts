@@ -6,7 +6,9 @@ import { writeFileSync } from 'fs';
 
 
 console.log("Starting desktop sandbox...")
-const desktop = await Desktop.create()
+const desktop = await Desktop.create({
+  enableNoVncAuth: true,
+})
 console.log("Desktop Sandbox started, ID:", desktop.sandboxId)
 console.log("Screen size:", await desktop.getScreenSize())
 
