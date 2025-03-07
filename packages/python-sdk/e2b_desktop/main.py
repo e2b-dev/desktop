@@ -12,7 +12,7 @@ class _VNCServer:
         self.__vnc_handle: CommandHandle | None = None
         self.__novnc_handle: CommandHandle | None = None
 
-        self._url = f"https://{desktop.get_host(desktop._novnc_port)}/vnc.html"
+        self._url = f"https://{desktop.get_host(desktop._stream_port)}/vnc.html"
 
         self._novnc_password = self._generate_password()
 
@@ -28,7 +28,7 @@ class _VNCServer:
         )
         self._novnc_command = (
             f"cd /opt/noVNC/utils && ./novnc_proxy --vnc localhost:{desktop._vnc_port} "
-            f"--listen {desktop._novnc_port} --web /opt/noVNC > /tmp/novnc.log 2>&1"
+            f"--listen {desktop._stream_port} --web /opt/noVNC > /tmp/novnc.log 2>&1"
         )
 
         self.__desktop = desktop
@@ -68,7 +68,7 @@ class _VNCServer:
             raise TimeoutException("Could not start VNC server")
 
         self.__vnc_handle = self.__desktop.commands.run(self._novnc_command, background=True)
-        if not self._wait_for_port(self.__desktop._novnc_port):
+        if not self._wait_for_port(self.__desktop._stream_port):
             raise TimeoutException("Could not start noVNC server")
 
     def stop(self) -> None:
@@ -94,8 +94,8 @@ class Desktop(SandboxBase):
         dpi: Optional[int] = None,
         display: Optional[str] = None,
         vnc_port: Optional[int] = None,
-        novnc_port: Optional[int] = None,
-        enable_novnc_auth: bool = False,
+        stream_port: Optional[int] = None,
+        enable_stream_auth: bool = False,
         template: Optional[str] = None,
         timeout: Optional[int] = None,
         metadata: Optional[Dict[str, str]] = None,
@@ -115,8 +115,8 @@ class Desktop(SandboxBase):
         :param dpi: Startup the desktop with custom DPI. Defaults to 96
         :param display: Startup the desktop with custom display. Defaults to ":0"
         :param vnc_port: Port number for VNC server. Defaults to 5900
-        :param novnc_port: Port number for noVNC server. Defaults to 6080
-        :param enable_novnc_auth: Enable noVNC server authentication. Defaults to False
+        :param stream_port: Port number for noVNC server. Defaults to 6080
+        :param enable_stream_auth: Enable noVNC server authentication. Defaults to False
         :param template: Sandbox template name or ID
         :param timeout: Timeout for the sandbox in **seconds**, default to 300 seconds. Maximum time a sandbox can be kept alive is 24 hours (86_400 seconds) for Pro users and 1 hour (3_600 seconds) for Hobby users
         :param metadata: Custom metadata for the sandbox
@@ -142,8 +142,8 @@ class Desktop(SandboxBase):
         )
         self._display = display or ":0"
         self._vnc_port = vnc_port or 5900
-        self._novnc_port = novnc_port or 6080
-        self._novnc_auth_enabled = enable_novnc_auth
+        self._stream_port = stream_port or 6080
+        self._novnc_auth_enabled = enable_stream_auth
 
         self._last_xfce4_pid = None
 
@@ -204,7 +204,7 @@ class Desktop(SandboxBase):
         self.__vnc_server.start()
 
     @property
-    def vnc_server(self) -> _VNCServer:
+    def stream(self) -> _VNCServer:
         return self.__vnc_server
 
     @overload

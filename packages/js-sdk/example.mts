@@ -7,18 +7,18 @@ import { writeFileSync } from 'fs';
 
 console.log("Starting desktop sandbox...")
 const desktop = await Desktop.create({
-  enableNoVncAuth: true,
+  enableStreamAuth: true,
 })
 console.log("Desktop Sandbox started, ID:", desktop.sandboxId)
 console.log("Screen size:", await desktop.getScreenSize())
 
-await desktop.vncServer.start()
+await desktop.stream.start()
 
-console.log("VNC URL:", desktop.vncServer.getUrl())
+console.log("Stream URL:", desktop.stream.getUrl())
 
 await new Promise(resolve => setTimeout(resolve, 5000));
 
-// If you have logged out from the desktop, you can restart the session and vnc server using:
+// If you have logged out from the desktop, you can restart the session and stream using:
 // await desktop.refresh()
 
 console.log("Moving mouse to 'Applications' and clicking...")
@@ -42,5 +42,5 @@ for (let i = 0; i < 20; i++) {
 }
 
 
-await desktop.vncServer.stop()
+await desktop.stream.stop()
 await desktop.kill()

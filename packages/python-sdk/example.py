@@ -7,16 +7,16 @@ from e2b_desktop import Desktop
 load_dotenv()
 
 print("Starting desktop sandbox...")
-desktop = Desktop(enable_novnc_auth=True)
+desktop = Desktop(enable_stream_auth=True)
 print("Screen size:", desktop.get_screen_size())
 
-desktop.vnc_server.start()
+desktop.stream.start()
 
-print("VNC URL:", desktop.vnc_server.get_url())
+print("Stream URL:", desktop.stream.get_url())
 
 input("Press enter to continue...")
 
-# If you have logged out from the desktop, you can restart the session and vnc server using:
+# If you have logged out from the desktop, you can restart the session and stream using:
 # desktop.refresh()
 
 print("Desktop Sandbox started, ID:", desktop.sandbox_id)
@@ -45,5 +45,5 @@ for i in range(20):
     print("Right clicked", i)
     time.sleep(2)
 
-desktop.vnc_server.stop()
+desktop.stream.stop()
 desktop.kill()

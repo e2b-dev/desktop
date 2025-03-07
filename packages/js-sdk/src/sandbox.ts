@@ -47,13 +47,13 @@ export interface SandboxOpts extends SandboxOptsBase {
    * Port number for the noVNC proxy server.
    * @type {number}
    */
-  novncPort?: number
+  streamPort?: number
 
   /**
    * Whether to enable authentication for noVNC connections.
    * @type {boolean}
    */
-  enableNoVncAuth?: boolean
+  enableStreamAuth?: boolean
 }
 
 
@@ -62,9 +62,9 @@ export class Desktop extends SandboxBase {
   private lastXfce4Pid: number | null = null;
   readonly display: string;
   readonly vncPort: number;
-  readonly novncPort: number;
+  readonly streamPort: number;
   readonly novncAuthEnabled: boolean;
-  readonly vncServer: VNCServer;
+  readonly stream: VNCServer;
   private readonly changeWallpaperCmd: string = (
     `xfconf-query --create -t string -c xfce4-desktop -p ` +
     `/backdrop/screen0/monitorscreen/workspace0/last-image -s /usr/share/backgrounds/xfce/wallpaper.png`
@@ -85,10 +85,10 @@ export class Desktop extends SandboxBase {
     super(opts);
     this.display = opts.display || ':0';
     this.vncPort = opts.vncPort || 5900;
-    this.novncPort = opts.novncPort || 6080;
-    this.novncAuthEnabled = opts.enableNoVncAuth || false;
+    this.streamPort = opts.streamPort || 6080;
+    this.novncAuthEnabled = opts.enableStreamAuth || false;
     this.lastXfce4Pid = null;
-    this.vncServer = new VNCServer(this);
+    this.stream = new VNCServer(this);
   }
   /**
    * Create a new sandbox from the default `desktop` sandbox template.
@@ -226,7 +226,7 @@ export class Desktop extends SandboxBase {
    */
   async refresh(): Promise<void> {
     await this.startXfce4();
-    await this.vncServer.start();
+    await this.stream.start();
   }
 
   /**
@@ -429,12 +429,12 @@ class VNCServer {
 
   constructor(desktop: Desktop) {
     this.desktop = desktop;
-    this.url = new URL(`https://${desktop.getHost(desktop.novncPort)}/vnc.html`);
+    this.url = new URL(`https://${desktop.getHost(desktop.streamPort)}/vnc.html`);
     this.password = generateRandomString();
 
     this.novncCommand = (
       `cd /opt/noVNC/utils && ./novnc_proxy --vnc localhost:${desktop.vncPort} ` +
-      `--listen ${desktop.novncPort} --web /opt/noVNC > /tmp/novnc.log 2>&1`
+      `--listen ${desktop.streamPort} --web /opt/noVNC > /tmp/novnc.log 2>&1`
     );
   }
 
@@ -492,7 +492,7 @@ class VNCServer {
     }
 
     this.novncHandle = await this.desktop.commands.run(this.novncCommand, { background: true });
-    if (!await this.waitForPort(this.desktop.novncPort)) {
+    if (!await this.waitForPort(this.desktop.streamPort)) {
       throw new Error("Could not start noVNC server");
     }
   }

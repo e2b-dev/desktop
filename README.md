@@ -48,8 +48,8 @@ desktop = Sandbox(
     display=":0",  # Custom display (defaults to :0)
     resolution=(1920, 1080),  # Custom resolution
     dpi=96,  # Custom DPI
-    novnc_port=6080,  # Custom noVNC port
-    enable_novnc_auth=True  # Enable authentication with an auto-generated password
+    stream_port=6080,  # Custom HTTPS port for streaming
+    enable_stream_auth=True  # Enable authentication with an auto-generated password
 )
 ```
 
@@ -66,14 +66,14 @@ const desktop = await Sandbox.create({
   display: ":0", // Custom display (defaults to :0)
   resolution: [1920, 1080], // Custom resolution
   dpi: 96, // Custom DPI
-  novncPort: 6080, // Custom noVNC port
-  enableNoVncAuth: true, // Enable authentication with an auto-generated password
+  streamPort: 6080, // Custom HTTPS port for streaming
+  enableStreamAuth: true, // Enable authentication with an auto-generated password
 });
 ```
 
 ## Features
 
-### VNC Integration
+### Streaming Integration
 
 **Python**
 
@@ -81,20 +81,17 @@ const desktop = await Sandbox.create({
 from e2b_desktop import Sandbox
 desktop = Sandbox()
 
-# Start VNC server
-desktop.vnc_server.start()
+# Start the stream
+desktop.stream.start()
 
-# Get VNC URL
-url = desktop.vnc_server.get_url()
+# Get stream URL
+url = desktop.stream.get_url()
 print(url)
 
-# Get VNC password (if authentication is enabled)
-password = desktop.vnc_server.password
+# Stop the stream
+desktop.stream.stop()
 
-# Stop VNC server
-desktop.vnc_server.stop()
-
-# If logged out, restart session and VNC server
+# If logged out, restart session and stream
 desktop.refresh()
 ```
 
@@ -105,20 +102,17 @@ import { Sandbox } from "@e2b/desktop";
 
 const desktop = await Sandbox.create();
 
-// Start VNC server
-await desktop.vncServer.start();
+// Start the stream
+await desktop.stream.start();
 
-// Get VNC URL
-const url = desktop.vncServer.getUrl();
+// Get stream URL
+const url = desktop.stream.getUrl();
 console.log(url);
 
-// Get VNC password (if authentication is enabled)
-const password = desktop.vncServer.password;
+// Stop the stream
+await desktop.stream.stop();
 
-// Stop VNC server
-await desktop.vncServer.stop();
-
-// If logged out, restart session and VNC server
+// If logged out, restart session and stream
 await desktop.refresh();
 ```
 
