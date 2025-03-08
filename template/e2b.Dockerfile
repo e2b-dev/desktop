@@ -4,7 +4,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV DEBIAN_PRIORITY=high
 
 RUN yes | unminimize
-RUN apt-get --reinstall install -y python3-jwt python3-oauthlib python3-lazr.restfulclient \
+RUN apt-get update && apt-get --reinstall install -y python3-jwt python3-oauthlib python3-lazr.restfulclient \
     python3-launchpadlib python3-apport xserver-xorg apport xorg
 
 RUN apt-get update && apt-get install -y \
