@@ -106,6 +106,10 @@ RUN apt-get update && \
 RUN pip install numpy
 
 # Install noVNC and websockify
+#
+# Invalidate cache so we always pull the latest noVNC and websockify
+# otherwise, Docker might not execute the `RUN` command if it's cached from the previous build
+ARG CACHEBUST=1
 RUN git clone --branch e2b-desktop https://github.com/e2b-dev/noVNC.git /opt/noVNC && \
     git clone --branch v0.12.0 https://github.com/novnc/websockify /opt/noVNC/utils/websockify && \
     ln -s /opt/noVNC/vnc.html /opt/noVNC/index.html

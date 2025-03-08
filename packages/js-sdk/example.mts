@@ -6,7 +6,11 @@ import { writeFileSync } from 'fs';
 
 
 console.log("Starting desktop sandbox...")
-const desktop = await Sandbox.create()
+
+console.time('--> Sandbox creation time');
+const desktop = await Sandbox.create();
+console.timeEnd('--> Sandbox creation time');
+
 console.log("Desktop Sandbox started, ID:", desktop.sandboxId)
 console.log("Screen size:", await desktop.getScreenSize())
 
