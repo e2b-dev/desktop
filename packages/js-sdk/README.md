@@ -4,7 +4,7 @@ E2B Desktop Sandbox is a secure virtual desktop ready for Computer Use. Powered 
 
 Each sandbox is isolated from the others and can be customized with any dependencies you want.
 
-![Desktop Sandbox](readme-assets/screenshot.png)
+![Desktop Sandbox](../../readme-assets/screenshot.png)
 
 ### Example app using Computer Use with Anthropic's Claude
 
@@ -21,37 +21,11 @@ Set environment variable `E2B_API_KEY` with your API key.
 
 ### 2. Install SDK
 
-**Python**
-
-```bash
-pip install e2b-desktop
-```
-
-**JavaScript**
-
 ```bash
 npm install @e2b/desktop
 ```
 
 ### 3. Create Desktop Sandbox
-
-**Python**
-
-```python
-from e2b_desktop import Sandbox
-
-# Basic initialization
-desktop = Sandbox()
-
-# With custom configuration
-desktop = Sandbox(
-    display=":0",  # Custom display (defaults to :0)
-    resolution=(1920, 1080),  # Custom resolution
-    dpi=96,  # Custom DPI
-)
-```
-
-**JavaScript**
 
 ```javascript
 import { Sandbox } from '@e2b/desktop'
@@ -63,35 +37,13 @@ const desktop = await Sandbox.create()
 const desktop = await Sandbox.create({
   display: ':0', // Custom display (defaults to :0)
   resolution: [1920, 1080], // Custom resolution
-  dpi: 96, // Custom DPI
+  dpi: 96 // Custom DPI
 })
 ```
 
 ## Features
 
 ### Streaming desktop's screen
-
-**Python**
-
-```python
-from e2b_desktop import Sandbox
-desktop = Sandbox()
-
-# Start the stream
-desktop.stream.start(
-    port=6080,  # Custom HTTPS port for streaming
-    enable_auth=True  # Enable authentication with an auto-generated password
-)
-
-# Get stream URL
-url = desktop.stream.get_url()
-print(url)
-
-# Stop the stream
-desktop.stream.stop()
-```
-
-**JavaScript**
 
 ```javascript
 import { Sandbox } from '@e2b/desktop'
@@ -114,22 +66,6 @@ await desktop.stream.stop()
 
 ### Mouse control
 
-**Python**
-
-```python
-from e2b_desktop import Sandbox
-desktop = Sandbox()
-
-desktop.double_click()
-desktop.left_click()
-desktop.right_click()
-desktop.middle_click()
-desktop.scroll(10) # Scroll by the amount. Positive for up, negative for down.
-desktop.mouse_move(100, 200) # Move to x, y coordinates
-```
-
-**JavaScript**
-
 ```javascript
 import { Sandbox } from '@e2b/desktop'
 
@@ -144,25 +80,6 @@ await desktop.moveMouse(100, 200) // Move to x, y coordinates
 ```
 
 ### Keyboard control
-
-**Python**
-
-```python
-from e2b_desktop import Sandbox
-desktop = Sandbox()
-
-# Write text at the current cursor position with customizable typing speed
-desktop.write("Hello, world!")  # Default: chunk_size=25, delay_in_ms=75
-desktop.write("Fast typing!", chunk_size=50, delay_in_ms=25)  # Faster typing
-
-# Press keys
-desktop.press("enter")
-desktop.press("space")
-desktop.press("backspace")
-desktop.press("ctrl+c")
-```
-
-**JavaScript**
 
 ```javascript
 import { Sandbox } from '@e2b/desktop'
@@ -182,21 +99,6 @@ await desktop.press('ctrl+c') // Copy
 
 ### Screenshot
 
-**Python**
-
-```python
-from e2b_desktop import Sandbox
-desktop = Sandbox()
-
-# Take a screenshot and save it as "screenshot.png" locally
-image = desktop.screenshot()
-# Save the image to a file
-with open("screenshot.png", "wb") as f:
-    f.write(image)
-```
-
-**JavaScript**
-
 ```javascript
 import { Sandbox } from '@e2b/desktop'
 
@@ -207,19 +109,6 @@ fs.writeFileSync('screenshot.png', image)
 ```
 
 ### Open file
-
-**Python**
-
-```python
-from e2b_desktop import Sandbox
-desktop = Sandbox()
-
-# Open file with default application
-desktop.files.write("/home/user/index.js", "console.log('hello')") # First create the file
-desktop.open("/home/user/index.js") # Then open it
-```
-
-**JavaScript**
 
 ```javascript
 import { Sandbox } from '@e2b/desktop'
@@ -232,19 +121,6 @@ await desktop.open('/home/user/index.js') // Then open it
 ```
 
 ### Run any bash commands
-
-**Python**
-
-```python
-from e2b_desktop import Sandbox
-desktop = Sandbox()
-
-# Run any bash command
-out = desktop.commands.run("ls -la /home/user")
-print(out)
-```
-
-**JavaScript**
 
 ```javascript
 import { Sandbox } from '@e2b/desktop'

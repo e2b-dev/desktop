@@ -4,7 +4,7 @@ E2B Desktop Sandbox is a secure virtual desktop ready for Computer Use. Powered 
 
 Each sandbox is isolated from the others and can be customized with any dependencies you want.
 
-![Desktop Sandbox](readme-assets/screenshot.png)
+![Desktop Sandbox](../../readme-assets/screenshot.png)
 
 ### Example app using Computer Use with Anthropic's Claude
 
@@ -21,21 +21,11 @@ Set environment variable `E2B_API_KEY` with your API key.
 
 ### 2. Install SDK
 
-**Python**
-
 ```bash
 pip install e2b-desktop
 ```
 
-**JavaScript**
-
-```bash
-npm install @e2b/desktop
-```
-
 ### 3. Create Desktop Sandbox
-
-**Python**
 
 ```python
 from e2b_desktop import Sandbox
@@ -51,27 +41,9 @@ desktop = Sandbox(
 )
 ```
 
-**JavaScript**
-
-```javascript
-import { Sandbox } from '@e2b/desktop'
-
-// Basic initialization
-const desktop = await Sandbox.create()
-
-// With custom configuration
-const desktop = await Sandbox.create({
-  display: ':0', // Custom display (defaults to :0)
-  resolution: [1920, 1080], // Custom resolution
-  dpi: 96, // Custom DPI
-})
-```
-
 ## Features
 
 ### Streaming desktop's screen
-
-**Python**
 
 ```python
 from e2b_desktop import Sandbox
@@ -91,30 +63,7 @@ print(url)
 desktop.stream.stop()
 ```
 
-**JavaScript**
-
-```javascript
-import { Sandbox } from '@e2b/desktop'
-
-const desktop = await Sandbox.create()
-
-// Start the stream
-await desktop.stream.start({
-  port: 6080, // Custom HTTPS port for streaming
-  enableAuth: true, // Enable authentication with an auto-generated password
-})
-
-// Get stream URL
-const url = desktop.stream.getUrl()
-console.log(url)
-
-// Stop the stream
-await desktop.stream.stop()
-```
-
 ### Mouse control
-
-**Python**
 
 ```python
 from e2b_desktop import Sandbox
@@ -128,24 +77,7 @@ desktop.scroll(10) # Scroll by the amount. Positive for up, negative for down.
 desktop.mouse_move(100, 200) # Move to x, y coordinates
 ```
 
-**JavaScript**
-
-```javascript
-import { Sandbox } from '@e2b/desktop'
-
-const desktop = await Sandbox.create()
-
-await desktop.doubleClick()
-await desktop.leftClick()
-await desktop.rightClick()
-await desktop.middleClick()
-await desktop.scroll(10) // Scroll by the amount. Positive for up, negative for down.
-await desktop.moveMouse(100, 200) // Move to x, y coordinates
-```
-
 ### Keyboard control
-
-**Python**
 
 ```python
 from e2b_desktop import Sandbox
@@ -162,27 +94,7 @@ desktop.press("backspace")
 desktop.press("ctrl+c")
 ```
 
-**JavaScript**
-
-```javascript
-import { Sandbox } from '@e2b/desktop'
-
-const desktop = await Sandbox.create()
-
-// Write text at the current cursor position with customizable typing speed
-await desktop.write('Hello, world!') // Default: chunkSize=25, delayInMs=75
-await desktop.write('Fast typing!', 50, 25) // Faster typing
-
-// Press keys
-await desktop.press('enter')
-await desktop.press('space')
-await desktop.press('backspace')
-await desktop.press('ctrl+c') // Copy
-```
-
 ### Screenshot
-
-**Python**
 
 ```python
 from e2b_desktop import Sandbox
@@ -195,20 +107,7 @@ with open("screenshot.png", "wb") as f:
     f.write(image)
 ```
 
-**JavaScript**
-
-```javascript
-import { Sandbox } from '@e2b/desktop'
-
-const desktop = await Sandbox.create()
-const image = await desktop.screenshot()
-// Save the image to a file
-fs.writeFileSync('screenshot.png', image)
-```
-
 ### Open file
-
-**Python**
 
 ```python
 from e2b_desktop import Sandbox
@@ -219,21 +118,7 @@ desktop.files.write("/home/user/index.js", "console.log('hello')") # First creat
 desktop.open("/home/user/index.js") # Then open it
 ```
 
-**JavaScript**
-
-```javascript
-import { Sandbox } from '@e2b/desktop'
-
-const desktop = await Sandbox.create()
-
-// Open file with default application
-await desktop.files.write('/home/user/index.js', "console.log('hello')") // First create the file
-await desktop.open('/home/user/index.js') // Then open it
-```
-
 ### Run any bash commands
-
-**Python**
 
 ```python
 from e2b_desktop import Sandbox
@@ -242,18 +127,6 @@ desktop = Sandbox()
 # Run any bash command
 out = desktop.commands.run("ls -la /home/user")
 print(out)
-```
-
-**JavaScript**
-
-```javascript
-import { Sandbox } from '@e2b/desktop'
-
-const desktop = await Sandbox.create()
-
-// Run any bash command
-const out = await desktop.commands.run('ls -la /home/user')
-console.log(out)
 ```
 
 ## Under the hood
