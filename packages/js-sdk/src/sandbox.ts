@@ -371,19 +371,19 @@ export class Sandbox extends SandboxBase {
   /**
    * Write the given text at the current cursor position.
    * @param text - The text to write.
-   * @param chunkSize - The size of each chunk of text to write.
-   * @param delayInMs - The delay between each chunk of text.
+   * @param options - An object containing the chunk size and delay between each chunk of text.
+   * @param options.chunkSize - The size of each chunk of text to write. Default is 25 characters.
+   * @param options.delayInMs - The delay between each chunk of text. Default is 75 ms.
    */
   async write(
     text: string,
-    chunkSize: number = 25,
-    delayInMs: number = 75
+    options: { chunkSize: number, delayInMs: number } = { chunkSize: 25, delayInMs: 75 }
   ): Promise<void> {
-    const chunks = this.breakIntoChunks(text, chunkSize);
+    const chunks = this.breakIntoChunks(text, options.chunkSize);
 
     for (const chunk of chunks) {
       await this.commands.run(
-        `xdotool type --delay ${delayInMs} ${this.quoteString(chunk)}`,
+        `xdotool type --delay ${options.delayInMs} ${this.quoteString(chunk)}`,
         { envs: { DISPLAY: this.display } }
       );
     }

@@ -104,8 +104,8 @@ import { Sandbox } from '@e2b/desktop'
 const desktop = await Sandbox.create()
 
 // Write text at the current cursor position with customizable typing speed
-await desktop.write('Hello, world!') // Default: chunkSize=25, delayInMs=75
-await desktop.write('Fast typing!', 50, 25) // Faster typing
+await desktop.write('Hello, world!')
+await desktop.write('Fast typing!', { chunkSize: 50, delayInMs: 25 }) // Faster typing
 
 // Press keys
 await desktop.press('enter')
