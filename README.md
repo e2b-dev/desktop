@@ -80,7 +80,6 @@ desktop = Sandbox()
 # Start the stream
 desktop.stream.start(
     port=6080,  # Custom HTTPS port for streaming
-    enable_auth=True  # Enable authentication with an auto-generated password
 )
 
 # Get stream URL
@@ -102,6 +101,47 @@ const desktop = await Sandbox.create()
 await desktop.stream.start({
   port: 6080, // Custom HTTPS port for streaming
   enableAuth: true, // Enable authentication with an auto-generated password
+})
+
+// Get stream URL
+const url = desktop.stream.getUrl()
+console.log(url)
+
+// Stop the stream
+await desktop.stream.stop()
+```
+
+### Streaming with password protection
+
+**Python**
+
+```python
+from e2b_desktop import Sandbox
+desktop = Sandbox()
+
+# Start the stream
+desktop.stream.start(
+    enable_auth=True  # Enable authentication with an auto-generated password that will be injected in the stream URL
+)
+
+# Get stream URL
+url = desktop.stream.get_url()
+print(url)
+
+# Stop the stream
+desktop.stream.stop()
+```
+
+**JavaScript**
+
+```javascript
+import { Sandbox } from '@e2b/desktop'
+
+const desktop = await Sandbox.create()
+
+// Start the stream
+await desktop.stream.start({
+  enableAuth: true, // Enable authentication with an auto-generated password that will be injected in the stream UR
 })
 
 // Get stream URL

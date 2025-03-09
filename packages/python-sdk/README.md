@@ -52,7 +52,25 @@ desktop = Sandbox()
 # Start the stream
 desktop.stream.start(
     port=6080,  # Custom HTTPS port for streaming
-    enable_auth=True  # Enable authentication with an auto-generated password
+)
+
+# Get stream URL
+url = desktop.stream.get_url()
+print(url)
+
+# Stop the stream
+desktop.stream.stop()
+```
+
+### Streaming with password protection
+
+```python
+from e2b_desktop import Sandbox
+desktop = Sandbox()
+
+# Start the stream
+desktop.stream.start(
+    enable_auth=True  # Enable authentication with an auto-generated password that will be injected in the stream URL
 )
 
 # Get stream URL
