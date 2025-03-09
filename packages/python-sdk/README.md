@@ -50,9 +50,7 @@ from e2b_desktop import Sandbox
 desktop = Sandbox()
 
 # Start the stream
-desktop.stream.start(
-    port=6080,  # Custom HTTPS port for streaming
-)
+desktop.stream.start()
 
 # Get stream URL
 url = desktop.stream.get_url()

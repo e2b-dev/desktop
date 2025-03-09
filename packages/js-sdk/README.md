@@ -51,9 +51,7 @@ import { Sandbox } from '@e2b/desktop'
 const desktop = await Sandbox.create()
 
 // Start the stream
-await desktop.stream.start({
-  port: 6080, // Custom HTTPS port for streaming
-})
+await desktop.stream.start()
 
 // Get stream URL
 const url = desktop.stream.getUrl()
