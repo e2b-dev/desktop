@@ -1,90 +1,113 @@
 ### Sandbox
 
-#### Properties
-
-| Property | Modifier | Type |
-| ------ | ------ | ------ |
-| <a id="display"></a> `display` | `readonly` | `string` |
-| <a id="stream"></a> `stream` | `readonly` | `VNCServer` |
-
 #### Methods
 
 ### doubleClick()
 
 ```ts
-doubleClick(): Promise<void>
+doubleClick(): Promise<CommandResult>
 ```
 
 Double left click on the current mouse position.
 
 ###### Returns
 
-`Promise`\<`void`\>
+`Promise`\<`CommandResult`\>
 
 ### getCursorPosition()
 
 ```ts
-getCursorPosition(): Promise<null | CursorPosition>
+getCursorPosition(): Promise<object>
 ```
 
-Get the current cursor position.
+Get the current mouse position.
 
 ###### Returns
 
-`Promise`\<`null` \| `CursorPosition`\>
+`Promise`\<`object`\>
 
-A object with the x and y coordinates
+An object with `x` and `y` coordinates.
 
-###### Throws
-
-Error if cursor position cannot be determined
+| Name | Type |
+| ------ | ------ |
+| `x` | `number` |
+| `y` | `number` |
 
 ### getScreenSize()
 
 ```ts
-getScreenSize(): Promise<null | ScreenSize>
+getScreenSize(): Promise<object>
 ```
 
 Get the current screen size.
 
 ###### Returns
 
-`Promise`\<`null` \| `ScreenSize`\>
+`Promise`\<`object`\>
 
-An ScreenSize object
+An object with `width` and `height` properties.
 
-###### Throws
+| Name | Type |
+| ------ | ------ |
+| `height` | `number` |
+| `width` | `number` |
 
-Error if screen size cannot be determined
+### getVideoStreamUrl()
+
+```ts
+getVideoStreamUrl(): Promise<string>
+```
+
+###### Returns
+
+`Promise`\<`string`\>
+
+### hotkey()
+
+```ts
+hotkey(...keys: string[]): Promise<CommandResult>
+```
+
+Press a hotkey.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| ...`keys` | `string`[] | The keys to press (e.g. `hotkey("ctrl", "c")` will press Ctrl+C). |
+
+###### Returns
+
+`Promise`\<`CommandResult`\>
 
 ### leftClick()
 
 ```ts
-leftClick(): Promise<void>
+leftClick(): Promise<CommandResult>
 ```
 
 Left click on the current mouse position.
 
 ###### Returns
 
-`Promise`\<`void`\>
+`Promise`\<`CommandResult`\>
 
 ### middleClick()
 
 ```ts
-middleClick(): Promise<void>
+middleClick(): Promise<CommandResult>
 ```
 
 Middle click on the current mouse position.
 
 ###### Returns
 
-`Promise`\<`void`\>
+`Promise`\<`CommandResult`\>
 
 ### moveMouse()
 
 ```ts
-moveMouse(x: number, y: number): Promise<void>
+moveMouse(x: number, y: number): Promise<CommandResult>
 ```
 
 Move the mouse to the given coordinates.
@@ -98,15 +121,16 @@ Move the mouse to the given coordinates.
 
 ###### Returns
 
-`Promise`\<`void`\>
+`Promise`\<`CommandResult`\>
 
 ### open()
 
 ```ts
-open(fileOrUrl: string): Promise<void>
+open(fileOrUrl: string): Promise<CommandHandle>
 ```
 
 Open a file or a URL in the default application.
+Note that you'll need to wait for the application to be opened.
 
 ###### Parameters
 
@@ -116,12 +140,12 @@ Open a file or a URL in the default application.
 
 ###### Returns
 
-`Promise`\<`void`\>
+`Promise`\<`CommandHandle`\>
 
 ### press()
 
 ```ts
-press(key: string): Promise<void>
+press(key: string): Promise<CommandResult>
 ```
 
 Press a key.
@@ -134,40 +158,79 @@ Press a key.
 
 ###### Returns
 
-`Promise`\<`void`\>
+`Promise`\<`CommandResult`\>
 
 ### rightClick()
 
 ```ts
-rightClick(): Promise<void>
+rightClick(): Promise<CommandResult>
 ```
 
 Right click on the current mouse position.
 
 ###### Returns
 
-`Promise`\<`void`\>
+`Promise`\<`CommandResult`\>
 
-### screenshot()
-
-###### Call Signature
+### runPyautoguiCode()
 
 ```ts
-screenshot(): Promise<Uint8Array<ArrayBufferLike>>
+runPyautoguiCode(code: string, opts: object): Promise<CommandResult>
+```
+
+Run the given Python code that uses pyautogui.
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `code` | `string` |
+| `opts` | `object` |
+| `opts.onStderr`? | (`data`: `string`) => `void` |
+| `opts.onStdout`? | (`data`: `string`) => `void` |
+
+###### Returns
+
+`Promise`\<`CommandResult`\>
+
+### scroll()
+
+```ts
+scroll(amount: number): Promise<CommandResult>
+```
+
+Scroll the mouse wheel by the given amount.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `amount` | `number` | The amount to scroll. |
+
+###### Returns
+
+`Promise`\<`CommandResult`\>
+
+### takeScreenshot()
+
+###### takeScreenshot()
+
+```ts
+takeScreenshot(): Promise<Uint8Array>
 ```
 
 Take a screenshot and save it to the given name.
 
 ###### Returns
 
-`Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
+`Promise`\<`Uint8Array`\>
 
 A Uint8Array bytes representation of the screenshot.
 
-###### Call Signature
+###### takeScreenshot(format)
 
 ```ts
-screenshot(format: "bytes"): Promise<Uint8Array<ArrayBufferLike>>
+takeScreenshot(format: "bytes"): Promise<Uint8Array>
 ```
 
 Take a screenshot and save it to the given name.
@@ -180,14 +243,14 @@ Take a screenshot and save it to the given name.
 
 ###### Returns
 
-`Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
+`Promise`\<`Uint8Array`\>
 
 A Uint8Array bytes representation of the screenshot.
 
-###### Call Signature
+###### takeScreenshot(format)
 
 ```ts
-screenshot(format: "blob"): Promise<Blob>
+takeScreenshot(format: "blob"): Promise<Blob>
 ```
 
 Take a screenshot and save it to the given name.
@@ -204,10 +267,10 @@ Take a screenshot and save it to the given name.
 
 A Blob representation of the screenshot.
 
-###### Call Signature
+###### takeScreenshot(format)
 
 ```ts
-screenshot(format: "stream"): Promise<ReadableStream<Uint8Array<ArrayBufferLike>>>
+takeScreenshot(format: "stream"): Promise<ReadableStream<Uint8Array>>
 ```
 
 Take a screenshot and save it to the given name.
@@ -220,60 +283,14 @@ Take a screenshot and save it to the given name.
 
 ###### Returns
 
-`Promise`\<`ReadableStream`\<`Uint8Array`\<`ArrayBufferLike`\>\>\>
+`Promise`\<`ReadableStream`\<`Uint8Array`\>\>
 
 A ReadableStream of bytes representation of the screenshot.
-
-### scroll()
-
-```ts
-scroll(direction: "up" | "down", amount: number): Promise<void>
-```
-
-Scroll the mouse wheel by the given amount.
-
-###### Parameters
-
-| Parameter | Type | Default value | Description |
-| ------ | ------ | ------ | ------ |
-| `direction` | `"up"` \| `"down"` | `'down'` | The direction to scroll. Can be "up" or "down". |
-| `amount` | `number` | `1` | The amount to scroll. |
-
-###### Returns
-
-`Promise`\<`void`\>
-
-### waitAndVerify()
-
-```ts
-waitAndVerify(
-   cmd: string, 
-   onResult: (result: CommandResult) => boolean, 
-   timeout: number, 
-interval: number): Promise<boolean>
-```
-
-Wait for a command to return a specific result.
-
-###### Parameters
-
-| Parameter | Type | Default value | Description |
-| ------ | ------ | ------ | ------ |
-| `cmd` | `string` | `undefined` | The command to run. |
-| `onResult` | (`result`: `CommandResult`) => `boolean` | `undefined` | The function to check the result of the command. |
-| `timeout` | `number` | `10` | The maximum time to wait for the command to return the result. |
-| `interval` | `number` | `0.5` | The interval to wait between checks. |
-
-###### Returns
-
-`Promise`\<`boolean`\>
-
-`true` if the command returned the result within the timeout, otherwise `false`.
 
 ### write()
 
 ```ts
-write(text: string, options: object): Promise<void>
+write(text: string): Promise<CommandResult>
 ```
 
 Write the given text at the current cursor position.
@@ -283,17 +300,14 @@ Write the given text at the current cursor position.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `text` | `string` | The text to write. |
-| `options` | \{ `chunkSize`: `number`; `delayInMs`: `number`; \} | An object containing the chunk size and delay between each chunk of text. |
-| `options.chunkSize` | `number` | The size of each chunk of text to write. Default is 25 characters. |
-| `options.delayInMs` | `number` | The delay between each chunk of text. Default is 75 ms. |
 
 ###### Returns
 
-`Promise`\<`void`\>
+`Promise`\<`CommandResult`\>
 
 ### create()
 
-###### Call Signature
+###### create(this, opts)
 
 ```ts
 static create<S>(this: S, opts?: SandboxOpts): Promise<InstanceType<S>>
@@ -330,9 +344,7 @@ const sandbox = await Sandbox.create()
 
 Sandbox
 
-```
-
-###### Call Signature
+###### create(this, template, opts)
 
 ```ts
 static create<S>(
@@ -373,61 +385,30 @@ const sandbox = await Sandbox.create('<template-name-or-id>')
 
 Sandbox
 
-```
-
 ## Interfaces
 
 ### SandboxOpts
 
-Configuration options for the Sandbox environment.
- SandboxOpts
-
 #### Properties
 
-### display?
+### onVideoStreamStart()?
 
 ```ts
-optional display: string;
+optional onVideoStreamStart: (url: string) => void;
 ```
 
-Display identifier.
+###### Parameters
 
-### dpi?
+| Parameter | Type |
+| ------ | ------ |
+| `url` | `string` |
+
+###### Returns
+
+`void`
+
+### videoStream?
 
 ```ts
-optional dpi: number;
+optional videoStream: boolean;
 ```
-
-Dots per inch (DPI) setting for the display.
-
-### enableAuth?
-
-```ts
-optional enableAuth: boolean;
-```
-
-Whether to enable authentication for noVNC connections.
-
-### port?
-
-```ts
-optional port: number;
-```
-
-Port number for the noVNC proxy server.
-
-### resolution?
-
-```ts
-optional resolution: [number, number];
-```
-
-The screen resolution in pixels, specified as [width, height].
-
-### vncPort?
-
-```ts
-optional vncPort: number;
-```
-
-Port number for the VNC server.

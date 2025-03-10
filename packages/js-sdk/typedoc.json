@@ -1,6 +1,6 @@
 {
   "out": "sdk_ref",
-  "plugin": ["typedoc-plugin-markdown", "./scripts/CustomMarkdownTheme.mjs"],
+  "plugin": ["typedoc-plugin-markdown", "./scripts/CustomMarkdownTheme.js"],
   "exclude": ["**/*.spec.ts"],
   "entryPoints": ["src/index.ts", "src/sandbox.ts"],
   "excludeExternals": true,

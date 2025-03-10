@@ -10,71 +10,39 @@ class Sandbox(SandboxBase)
 ```
 
 
-### \_\_init\_\_
+### get\_video\_stream\_url
 
 ```python
-def __init__(resolution: Optional[Tuple[int, int]] = None,
-             dpi: Optional[int] = None,
-             display: Optional[str] = None,
-             template: Optional[str] = None,
-             timeout: Optional[int] = None,
-             metadata: Optional[Dict[str, str]] = None,
-             envs: Optional[Dict[str, str]] = None,
-             api_key: Optional[str] = None,
-             domain: Optional[str] = None,
-             debug: Optional[bool] = None,
-             sandbox_id: Optional[str] = None,
-             request_timeout: Optional[float] = None)
+def get_video_stream_url()
 ```
 
-Create a new desktop sandbox.
-
-By default, the sandbox is created from the `desktop` template.
-
-**Arguments**:
-
-- `resolution`: Startup the desktop with custom screen resolution. Defaults to (1024, 768)
-- `dpi`: Startup the desktop with custom DPI. Defaults to 96
-- `display`: Startup the desktop with custom display. Defaults to ":0"
-- `template`: Sandbox template name or ID
-- `timeout`: Timeout for the sandbox in **seconds**, default to 300 seconds. Maximum time a sandbox can be kept alive is 24 hours (86_400 seconds) for Pro users and 1 hour (3_600 seconds) for Hobby users
-- `metadata`: Custom metadata for the sandbox
-- `envs`: Custom environment variables for the sandbox
-- `api_key`: E2B API Key to use for authentication, defaults to `E2B_API_KEY` environment variable
-- `domain`: E2B domain to use for authentication, defaults to `E2B_DOMAIN` environment variable
-- `debug`: If True, the sandbox will be created in debug mode, defaults to `E2B_DEBUG` environment variable
-- `sandbox_id`: Sandbox ID to connect to, defaults to `E2B_SANDBOX_ID` environment variable
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-sandbox instance for the new sandbox
+Get the video stream URL.
 
 
-### screenshot
+### take\_screenshot
 
 ```python
 @overload
-def screenshot(format: Literal["stream"]) -> Iterator[bytes]
+def take_screenshot(format: Literal["stream"]) -> Iterator[bytes]
 ```
 
 Take a screenshot and return it as a stream of bytes.
 
 
-### screenshot
+### take\_screenshot
 
 ```python
 @overload
-def screenshot(format: Literal["bytes"]) -> bytearray
+def take_screenshot(format: Literal["bytes"]) -> bytearray
 ```
 
 Take a screenshot and return it as a bytearray.
 
 
-### screenshot
+### take\_screenshot
 
 ```python
-def screenshot(format: Literal["bytes", "stream"] = "bytes")
+def take_screenshot(format: Literal["bytes", "stream"] = "bytes")
 ```
 
 Take a screenshot and return it in the specified format.
@@ -127,14 +95,13 @@ Middle click on the current mouse position.
 ### scroll
 
 ```python
-def scroll(direction: Literal["up", "down"] = "down", amount: int = 1)
+def scroll(amount: int)
 ```
 
 Scroll the mouse wheel by the given amount.
 
 **Arguments**:
 
-- `direction`: The direction to scroll. Can be "up" or "down".
 - `amount`: The amount to scroll.
 
 
@@ -155,41 +122,33 @@ Move the mouse to the given coordinates.
 ### get\_cursor\_position
 
 ```python
-def get_cursor_position() -> tuple[int, int]
+def get_cursor_position()
 ```
 
 Get the current cursor position.
 
-**Raises**:
-
-- `RuntimeError`: If the cursor position cannot be determined
-
 **Returns**:
 
-A tuple with the x and y coordinates
+A tuple with the x and y coordinates.
 
 
 ### get\_screen\_size
 
 ```python
-def get_screen_size() -> tuple[int, int]
+def get_screen_size()
 ```
 
 Get the current screen size.
 
-**Raises**:
-
-- `RuntimeError`: If the screen size cannot be determined
-
 **Returns**:
 
-A tuple with the width and height
+A tuple with the width and height.
 
 
 ### write
 
 ```python
-def write(text: str, *, chunk_size: int = 25, delay_in_ms: int = 75) -> None
+def write(text: str)
 ```
 
 Write the given text at the current cursor position.
@@ -197,8 +156,6 @@ Write the given text at the current cursor position.
 **Arguments**:
 
 - `text`: The text to write.
-- `chunk_size`: The size of each chunk of text to write.
-- `delay_in_ms`: The delay between each chunk of text.
 
 
 ### press
@@ -212,6 +169,19 @@ Press a key.
 **Arguments**:
 
 - `key`: The key to press (e.g. "enter", "space", "backspace", etc.).
+
+
+### hotkey
+
+```python
+def hotkey(*keys)
+```
+
+Press a hotkey.
+
+**Arguments**:
+
+- `keys`: The keys to press (e.g. `hotkey("ctrl", "c")` will press Ctrl+C).
 
 
 ### open

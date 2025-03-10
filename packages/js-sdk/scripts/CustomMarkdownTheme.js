@@ -1,6 +1,6 @@
-import { MarkdownPageEvent } from "typedoc-plugin-markdown";
+const { MarkdownPageEvent } = require("typedoc-plugin-markdown");
 
-export function load(app) {
+function load(app) {
   // Listen to the render event
   app.renderer.on(MarkdownPageEvent.END, (page) => {
     // Remove Markdown links from the document contents
@@ -59,3 +59,6 @@ function removeLinesWithConditions(text) {
   // Join the filtered lines back into a single string
   return filteredLines.join("\n");
 }
+
+// Export the load function
+module.exports = { load };
