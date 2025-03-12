@@ -33,14 +33,6 @@ RUN apt-get update && apt-get install -y \
 
 RUN pip3 install mux_python requests
 
-# Install vscode
-RUN apt update -y \
-    && apt install -y software-properties-common apt-transport-https wget \
-    && wget -qO- https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
-    && add-apt-repository -y "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main" \
-    && apt update -y \
-    && apt install -y code
-
 ENV PIP_DEFAULT_TIMEOUT=100 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_NO_CACHE_DIR=1 \
@@ -101,6 +93,9 @@ RUN apt-get update && \
     pcmanfm \
     unzip && \
     apt-get clean
+
+# Select the default terminal to xfce4-terminal.wrapper
+RUN sudo ln -sf /usr/bin/xfce4-terminal.wrapper /etc/alternatives/x-terminal-emulator
 
 # Install numpy which is used by websockify: https://github.com/novnc/websockify/issues/337
 RUN pip install numpy

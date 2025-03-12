@@ -45,6 +45,7 @@ def create_window(stream_url, width, height, command_queue):
 def main():
     print("> Starting desktop sandbox...")
     desktop = Sandbox()
+    # desktop.commands.run("sudo ln -sf /usr/bin/xfce4-terminal.wrapper /etc/alternatives/x-terminal-emulator")
     print(" - Desktop Sandbox started, ID:", desktop.sandbox_id)
 
     width, height = desktop.get_screen_size()
