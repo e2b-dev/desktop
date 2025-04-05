@@ -78,3 +78,5 @@ COPY ./settings.json /home/user/.config/Code/User/settings.json
 
 # Copy desktop background for XFCE
 COPY ./wallpaper.png /usr/share/backgrounds/xfce/wallpaper.png
+RUN mkdir -p /home/user/.config/xfce4/xfconf/xfce-perchannel-xml/
+COPY ./xfce4-desktop.xml /home/user/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml
