@@ -52,7 +52,7 @@ RUN \
 RUN sudo ln -sf /usr/bin/xfce4-terminal.wrapper /etc/alternatives/x-terminal-emulator
 
 # Install standard apps
-RUN x11-apps \
+RUN apt-get install -y x11-apps \
     libreoffice \
     xpdf \
     gedit \
