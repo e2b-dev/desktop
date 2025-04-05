@@ -49,7 +49,7 @@ RUN \
 # ~ Make your changes to this template BELOW this line ~
 
 # Set the default terminal
-RUN sudo ln -sf /usr/bin/xfce4-terminal.wrapper /etc/alternatives/x-terminal-emulator
+RUN ln -sf /usr/bin/xfce4-terminal.wrapper /etc/alternatives/x-terminal-emulator
 
 # Install standard apps
 RUN apt-get install -y x11-apps \
