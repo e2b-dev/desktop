@@ -1,126 +1,80 @@
+# E2B Desktop Sandbox Template
+#
+# This Dockerfile contains the commands to create a computer use sandbox on E2B.
+# If you want to make your own template based on this one, make your changes
+
 FROM ubuntu:22.04
 
-ENV DEBIAN_FRONTEND=noninteractive
-ENV DEBIAN_PRIORITY=high
+# Environment variables:
 
-RUN yes | unminimize
-RUN apt-get update && apt-get --reinstall install -y python3-jwt python3-oauthlib python3-lazr.restfulclient \
-    python3-launchpadlib python3-apport xserver-xorg apport xorg
-
-RUN apt-get update && apt-get install -y \
-    python3-xlib \
-    x11-xserver-utils \
-    xfce4 \
-    xfce4-goodies \
-    xvfb \
-    xubuntu-icon-theme \
-    scrot \
-    python3-pip \
-    python3-tk \
-    python3-dev \
-    x11-utils \
-    gnumeric \
-    python-is-python3 \
-    build-essential \
-    util-linux \
-    locales \
-    xauth \
-    gnome-screenshot \
-    xserver-xorg \
-    ffmpeg \
-    vim \
-    xorg
-
-RUN pip3 install mux_python requests
-
-# Install vscode
-RUN apt update -y \
-    && apt install -y software-properties-common apt-transport-https wget \
-    && wget -qO- https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
-    && add-apt-repository -y "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main" \
-    && apt update -y \
-    && apt install -y code
-# Create the vscode config directory
-RUN mkdir -p /home/user/.config/Code/User
-# Set up the vscode autosave delay for 200ms
-# Remove the "trust directory popup" prompt for vscode
-RUN echo "{\"files.autoSave\": \"afterDelay\", \"files.autoSaveDelay\": 200, \"security.allowHttp\": true, \"security.workspace.trust.startupPrompt\": \"never\", \"security.workspace.trust.enabled\": false, \"security.workspace.trust.banner\": \"never\", \"security.workspace.trust.emptyWindow\": false}" > /home/user/.config/Code/User/settings.json
-
-ENV PIP_DEFAULT_TIMEOUT=100 \
+ENV \
+    # Avoid system prompts: \
+    DEBIAN_FRONTEND=noninteractive \
+    DEBIAN_PRIORITY=high \
+    # Pip settings: \
+    PIP_DEFAULT_TIMEOUT=100 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    PIP_NO_CACHE_DIR=1 \
-    DEBIAN_FRONTEND=noninteractive
+    PIP_NO_CACHE_DIR=1
 
-COPY ./requirements.txt requirements.txt
-RUN pip3 install --no-cache-dir -r requirements.txt
+# Desktop environment:
 
-COPY ./45-allow-colord.pkla /etc/polkit-1/localauthority/50-local.d/45-allow-colord.pkla
+RUN yes | unminimize && \
+    apt-get update && \
+    # X window server:
+    apt-get install -y xserver-xorg xorg x11-xserver-utils xvfb x11-utils xauth && \
+    # XFCE desktop environment:
+    apt-get install -y xfce4 xfce4-goodies && \ 
+    # Basic system utilities:
+    apt-get install -y util-linux sudo curl git && \
+    # Pip will be used to install Python packages:
+    apt-get install -y python3-pip && \ 
+    # Tools used by the desktop SDK:
+    apt-get install -y xdotool scrot ffmpeg
 
-COPY ./Xauthority /home/user/.Xauthority
+# Streaming server:
 
-RUN apt-get update && \
-    apt-get -y upgrade && \
-    apt-get -y install \
-    build-essential \
-    # UI Requirements
-    xvfb \
-    xterm \
-    xdotool \
-    scrot \
-    imagemagick \
-    sudo \
-    mutter \
-    x11vnc \
-    # Python/pyenv reqs
-    build-essential \
-    libssl-dev  \
-    zlib1g-dev \
-    libbz2-dev \
-    libreadline-dev \
-    libsqlite3-dev \
-    curl \
-    git \
-    libncursesw5-dev \
-    xz-utils \
-    tk-dev \
-    libxml2-dev \
-    libxmlsec1-dev \
-    libffi-dev \
-    liblzma-dev \
-    # Network tools
-    net-tools \
-    netcat \
-    # PPA req
-    software-properties-common && \
-    # Userland apps
-    sudo add-apt-repository ppa:mozillateam/ppa && \
-    sudo apt-get install -y --no-install-recommends \
+RUN \
+    # VNC: \
+    apt-get install -y x11vnc && \
+    # NoVNC: \
+    git clone --branch e2b-desktop https://github.com/e2b-dev/noVNC.git /opt/noVNC && \
+    ln -s /opt/noVNC/vnc.html /opt/noVNC/index.html && \
+    # Websockify: \
+    apt-get install -y net-tools netcat && \
+    pip install numpy && \
+    git clone --branch v0.12.0 https://github.com/novnc/websockify /opt/noVNC/utils/websockify
+
+# User applications:
+
+# ~ Make your changes to this template BELOW this line ~
+
+# Set the default terminal
+RUN sudo ln -sf /usr/bin/xfce4-terminal.wrapper /etc/alternatives/x-terminal-emulator
+
+# Install standard apps
+RUN apt-get install -y x11-apps \
     libreoffice \
-    firefox-esr \
-    x11-apps \
     xpdf \
     gedit \
     xpaint \
     tint2 \
     galculator \
-    pcmanfm \
-    unzip && \
-    apt-get clean
+    pcmanfm
 
-# Select the default terminal to xfce4-terminal.wrapper
-RUN sudo ln -sf /usr/bin/xfce4-terminal.wrapper /etc/alternatives/x-terminal-emulator
+# Install Firefox
+RUN apt-get install -y software-properties-common && \
+    add-apt-repository ppa:mozillateam/ppa && \
+    apt-get install -y --no-install-recommends \
+    firefox-esr
 
-# Install numpy which is used by websockify: https://github.com/novnc/websockify/issues/337
-RUN pip install numpy
+# Install VS Code
+RUN apt-get install wget apt-transport-https && \
+    wget -qO- https://packages.microsoft.com/keys/microsoft.asc | apt-key add - && \
+    add-apt-repository -y "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main" && \
+    apt-get update -y && \
+    apt-get install -y code
+RUN mkdir -p /home/user/.config/Code/User
+COPY ./settings.json /home/user/.config/Code/User/settings.json
 
-# Install noVNC and websockify
-#
-# Invalidate cache so we always pull the latest noVNC and websockify
-# otherwise, Docker might not execute the `RUN` command if it's cached from the previous build
-ARG CACHEBUST=1
-RUN git clone --branch e2b-desktop https://github.com/e2b-dev/noVNC.git /opt/noVNC && \
-    git clone --branch v0.12.0 https://github.com/novnc/websockify /opt/noVNC/utils/websockify && \
-    ln -s /opt/noVNC/vnc.html /opt/noVNC/index.html
-
-# Copy E2B desktop wallpaper
+# Copy desktop background for XFCE
 COPY ./wallpaper.png /usr/share/backgrounds/xfce/wallpaper.png

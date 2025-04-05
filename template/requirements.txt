@@ -1,8 +1,0 @@
-pyvirtualdisplay
-pyscreenshot
-pyautogui
-pillow
-EasyProcess
-python-xlib
-opencv-python
-keyboard
