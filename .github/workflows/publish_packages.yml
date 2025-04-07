@@ -49,7 +49,7 @@ jobs:
       - name: Setup Node.js 18
         uses: actions/setup-node@v3
         with:
-          node-version: '18.x'
+          node-version: "18.x"
           cache: pnpm
 
       - name: Configure pnpm
@@ -68,9 +68,14 @@ jobs:
       - name: Generate SDK reference
         id: sdk-ref
         run: pnpm run --recursive generate-ref
-    
+
       - name: Show docs file structure
-        run: tree ./sdk-reference
+        run: |
+          if [ -d "./sdk-reference" ]; then
+            tree ./sdk-reference
+          else
+            echo "sdk-reference directory does not exist"
+          fi
 
       - name: Release new versions
         uses: changesets/action@v1
