@@ -92,6 +92,10 @@ desktop = Sandbox()
 # Start the stream
 desktop.stream.start()
 
+# Get stream URL
+url = desktop.stream.get_url()
+print(url)
+
 # Get stream URL and disable user interaction
 url = desktop.stream.get_url(view_only=True)
 print(url)
@@ -109,6 +113,10 @@ const desktop = await Sandbox.create()
 
 // Start the stream
 await desktop.stream.start()
+
+// Get stream URL
+const url = desktop.stream.getUrl();
+console.log(url);
 
 // Get stream URL and disable user interaction
 const url = desktop.stream.getUrl({ viewOnly: true })
