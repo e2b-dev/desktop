@@ -520,6 +520,13 @@ interface VNCServerOptions {
   requireAuth?: boolean;
 }
 
+interface UrlOptions {
+  autoConnect?: boolean;
+  viewOnly?: boolean;
+  resize?: "off" | "scale" | "remote";
+  authKey?: string;
+}
+
 // Modified VNCServer class
 class VNCServer {
   private vncPort: number = 5900;
@@ -572,13 +579,21 @@ class VNCServer {
     );
   }
 
+
   /**
-   * Get the URL to connect to the VNC server.
+   * Get the URL to a web page with a stream of the desktop sandbox.
    * @param autoConnect - Whether to automatically connect to the server after opening the URL.
+   * @param viewOnly - Whether to prevent user interaction through the client.
+   * @param resize - Whether to resize the view when the window resizes.
    * @param authKey - The password to use to connect to the server.
    * @returns The URL to connect to the VNC server.
    */
-  public getUrl({ autoConnect = true, authKey }: { autoConnect?: boolean, authKey?: string } = {}): string {
+  public getUrl({
+    autoConnect = true,
+    viewOnly = false,
+    resize = "scale",
+    authKey
+  }: UrlOptions = {}): string {
     if (this.url === null) {
       throw new Error('Server is not running');
     }
@@ -586,6 +601,12 @@ class VNCServer {
     let url = new URL(this.url);
     if (autoConnect) {
       url.searchParams.set('autoconnect', 'true');
+    }
+    if (viewOnly) {
+      url.searchParams.set('view_only', 'true');
+    }
+    if (resize) {
+      url.searchParams.set('resize', resize);
     }
     if (authKey) {
       url.searchParams.set("password", authKey);

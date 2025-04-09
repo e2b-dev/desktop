@@ -102,10 +102,14 @@ class _VNCServer:
         characters = string.ascii_letters + string.digits
         return ''.join(secrets.choice(characters) for _ in range(length))
 
-    def get_url(self, auto_connect: bool = True, auth_key: Optional[str] = None) -> str:
+    def get_url(self, auto_connect: bool = True, view_only: bool = False, resize: str = "scale", auth_key: Optional[str] = None) -> str:
         params = []
         if auto_connect:
             params.append("autoconnect=true")
+        if view_only:
+            params.append(f"view_only=true")
+        if resize:
+            params.append(f"resize={resize}")
         if auth_key:
             params.append(f"password={auth_key}")
         if params:
