@@ -630,10 +630,8 @@ class VNCServer {
   private port: number = 6080
   private novncAuthEnabled: boolean = false
   private url: URL | null = null
-  private vncHandle: CommandHandle | null = null
   private novncHandle: CommandHandle | null = null
   private password: string | undefined
-  private vncCommand: string = ''
   private readonly novncCommand: string
   private readonly desktop: Sandbox
 
@@ -657,7 +655,7 @@ class VNCServer {
   /**
    * Set the VNC command to start the VNC server.
    */
-  private async setVncCommand(windowId?: string): Promise<void> {
+  private async getVNCCommand(windowId?: string): Promise<string> {
     let pwdFlag = '-nopw'
     if (this.novncAuthEnabled) {
       await this.desktop.commands.run('mkdir ~/.vnc')
@@ -667,10 +665,11 @@ class VNCServer {
       pwdFlag = '-usepw'
     }
 
-    this.vncCommand =
-      `x11vnc -display ${this.desktop.display} -forever -wait 50 -shared ` +
+    return (
+      `x11vnc -bg -display ${this.desktop.display} -forever -wait 50 -shared ` +
       `-rfbport ${this.vncPort} ${pwdFlag} 2>/tmp/x11vnc_stderr.log` +
       (windowId ? ` -id ${windowId}` : '')
+    )
   }
 
   private async waitForPort(port: number): Promise<boolean> {
@@ -678,6 +677,19 @@ class VNCServer {
       `netstat -tuln | grep ":${port} "`,
       (r: CommandResult) => r.stdout.trim() !== ''
     )
+  }
+
+  /**
+   * Check if the VNC server is running.
+   * @returns Whether the VNC server is running.
+   */
+  private async checkVNCRunning(): Promise<boolean> {
+    try {
+      const result = await this.desktop.commands.run('pgrep -x x11vnc')
+      return result.stdout.trim() !== ''
+    } catch (error) {
+      return false
+    }
   }
 
   /**
@@ -718,9 +730,9 @@ class VNCServer {
    * Start the VNC server.
    */
   public async start(opts: VNCServerOptions = {}): Promise<void> {
-    // If both servers are already running, throw an error.
-    if (this.vncHandle !== null && this.novncHandle !== null) {
-      throw new Error('Server is already running')
+    // If stream is already running, throw an error.
+    if (await this.checkVNCRunning()) {
+      throw new Error('Stream is already running')
     }
 
     this.vncPort = opts.vncPort ?? this.vncPort
@@ -729,18 +741,8 @@ class VNCServer {
     this.password = this.novncAuthEnabled ? generateRandomString() : undefined
     this.url = new URL(`https://${this.desktop.getHost(this.port)}/vnc.html`)
 
-    // Stop both servers in case one of them is running.
-    await this.stop()
-
-    if (this.vncCommand === '') {
-      await this.setVncCommand(opts.windowId)
-    }
-    this.vncHandle = await this.desktop.commands.run(this.vncCommand, {
-      background: true,
-    })
-    if (!(await this.waitForPort(this.vncPort))) {
-      throw new Error('Could not start VNC server')
-    }
+    const vncCommand = await this.getVNCCommand(opts.windowId)
+    await this.desktop.commands.run(vncCommand)
 
     this.novncHandle = await this.desktop.commands.run(this.novncCommand, {
       background: true,
@@ -754,9 +756,8 @@ class VNCServer {
    * Stop the VNC server.
    */
   public async stop(): Promise<void> {
-    if (this.vncHandle) {
-      await this.vncHandle.kill()
-      this.vncHandle = null
+    if (await this.checkVNCRunning()) {
+      await this.desktop.commands.run('pkill x11vnc')
     }
 
     if (this.novncHandle) {
