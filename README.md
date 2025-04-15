@@ -175,6 +175,12 @@ await desktop.stream.stop()
 
 ### Streaming specific application
 
+> [!WARNING]
+>
+> - Will raise an error if the desired application is not open yet
+> - The stream will close once the application closes
+> - Creating multiple streams at the same time is not supported, you may have to stop the current stream and start a new one for each application
+
 **Python**
 
 ```python
