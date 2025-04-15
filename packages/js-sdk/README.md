@@ -15,6 +15,7 @@ Check out the [example open-source app](https://github.com/e2b-dev/open-computer
 ### Basic SDK usage examples
 
 Check out the examples directory for more examples on how to use the SDK:
+
 - [Python](./examples/basic-python)
 - [JavaScript](./examples/basic-javascript)
 
@@ -45,7 +46,7 @@ const desktop = await Sandbox.create()
 const desktop = await Sandbox.create({
   display: ':0', // Custom display (defaults to :0)
   resolution: [1920, 1080], // Custom resolution
-  dpi: 96 // Custom DPI
+  dpi: 96, // Custom DPI
 })
 ```
 
@@ -92,6 +93,26 @@ console.log(url)
 await desktop.stream.stop()
 ```
 
+### Streaming specific application
+
+```javascript
+import { Sandbox } from '@e2b/desktop'
+
+const desktop = await Sandbox.create()
+
+// Get current (active) window ID
+const windowId = await desktop.getCurrentWindowId()
+
+// Get all windows of the application
+const windowIds = await desktop.getApplicationWindows('Firefox')
+
+// Start the stream
+await desktop.stream.start({ windowId: windowIds[0] })
+
+// Stop the stream
+await desktop.stream.stop()
+```
+
 ### Mouse control
 
 ```javascript
@@ -109,8 +130,8 @@ await desktop.middleClick(100, 200)
 await desktop.scroll(10) // Scroll by the amount. Positive for up, negative for down.
 await desktop.moveMouse(100, 200) // Move to x, y coordinates
 await desktop.drag([100, 100], [200, 200]) // Drag using the mouse
-await desktop.mousePress("left") // Press the mouse button
-await desktop.mouseRelease("left") // Release the mouse button
+await desktop.mousePress('left') // Press the mouse button
+await desktop.mouseRelease('left') // Release the mouse button
 ```
 
 ### Keyboard control
@@ -129,6 +150,23 @@ await desktop.press('enter')
 await desktop.press('space')
 await desktop.press('backspace')
 await desktop.press(['ctrl', 'c']) // Key combination
+```
+
+### Window control
+
+```javascript
+import { Sandbox } from '@e2b/desktop'
+
+const desktop = await Sandbox.create()
+
+// Get current (active) window ID
+const windowId = await desktop.getCurrentWindowId()
+
+// Get all windows of the application
+const windowIds = await desktop.getApplicationWindows('Firefox')
+
+// Get window title
+const title = await desktop.getWindowTitle(windowId)
 ```
 
 ### Screenshot

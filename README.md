@@ -11,16 +11,16 @@ Each sandbox is isolated from the others and can be customized with any dependen
 **Basic SDK Examples**
 
 - Check out the examples directory for more examples on how to use the SDK:
-   - [Python](./examples/basic-python)
-   - [JavaScript](./examples/basic-javascript)
+  - [Python](./examples/basic-python)
+  - [JavaScript](./examples/basic-javascript)
 
 **[Open Computer Use](https://github.com/e2b-dev/open-computer-use)**
-   
+
 - Computer use made with 100% open source LLMs.
 
 **[🏄 Surf](https://github.com/e2b-dev/surf)**
 
--  OpenAI Computer Use Agent using E2B's Desktop Sandbox. Runs as a Next.js app.
+- OpenAI Computer Use Agent using E2B's Desktop Sandbox. Runs as a Next.js app.
 
 ## 🚀 Getting started
 
@@ -115,8 +115,8 @@ const desktop = await Sandbox.create()
 await desktop.stream.start()
 
 // Get stream URL
-const url = desktop.stream.getUrl();
-console.log(url);
+const url = desktop.stream.getUrl()
+console.log(url)
 
 // Get stream URL and disable user interaction
 const url = desktop.stream.getUrl({ viewOnly: true })
@@ -173,6 +173,47 @@ console.log(url)
 await desktop.stream.stop()
 ```
 
+### Streaming specific application
+
+**Python**
+
+```python
+from e2b_desktop import Sandbox
+desktop = Sandbox()
+
+# Get current (active) window ID
+window_id = desktop.get_current_window_id()
+
+# Get all windows of the application
+window_ids = desktop.get_application_windows("Firefox")
+
+# Start the stream
+desktop.stream.start(window_id=window_ids[0])
+
+# Stop the stream
+desktop.stream.stop()
+```
+
+**JavaScript**
+
+```javascript
+import { Sandbox } from '@e2b/desktop'
+
+const desktop = await Sandbox.create()
+
+// Get current (active) window ID
+const windowId = await desktop.getCurrentWindowId()
+
+// Get all windows of the application
+const windowIds = await desktop.getApplicationWindows('Firefox')
+
+// Start the stream
+await desktop.stream.start({ windowId: windowIds[0] })
+
+// Stop the stream
+await desktop.stream.stop()
+```
+
 ### Mouse control
 
 **Python**
@@ -212,8 +253,8 @@ await desktop.middleClick(100, 200)
 await desktop.scroll(10) // Scroll by the amount. Positive for up, negative for down.
 await desktop.moveMouse(100, 200) // Move to x, y coordinates
 await desktop.drag([100, 100], [200, 200]) // Drag using the mouse
-await desktop.mousePress("left") // Press the mouse button
-await desktop.mouseRelease("left") // Release the mouse button
+await desktop.mousePress('left') // Press the mouse button
+await desktop.mouseRelease('left') // Release the mouse button
 ```
 
 ### Keyboard control
@@ -251,6 +292,41 @@ await desktop.press('enter')
 await desktop.press('space')
 await desktop.press('backspace')
 await desktop.press(['ctrl', 'c']) // Key combination
+```
+
+### Window control
+
+**Python**
+
+```python
+from e2b_desktop import Sandbox
+desktop = Sandbox()
+
+# Get current (active) window ID
+window_id = desktop.get_current_window_id()
+
+# Get all windows of the application
+window_ids = desktop.get_application_windows("Firefox")
+
+# Get window title
+title = desktop.get_window_title(window_id)
+```
+
+**JavaScript**
+
+```javascript
+import { Sandbox } from '@e2b/desktop'
+
+const desktop = await Sandbox.create()
+
+// Get current (active) window ID
+const windowId = await desktop.getCurrentWindowId()
+
+// Get all windows of the application
+const windowIds = await desktop.getApplicationWindows('Firefox')
+
+// Get window title
+const title = await desktop.getWindowTitle(windowId)
 ```
 
 ### Screenshot
@@ -338,7 +414,7 @@ from e2b_desktop import Sandbox
 desktop = Sandbox()
 
 desktop.wait(1000) # Wait for 1 second
-``` 
+```
 
 **JavaScript**
 

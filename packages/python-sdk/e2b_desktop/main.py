@@ -121,7 +121,7 @@ class _VNCServer:
             raise RuntimeError('Unable to retrieve stream auth key, check if require_auth is enabled')
         return self._novnc_password
 
-    def start(self, vnc_port: Optional[int] = None, port: Optional[int] = None, require_auth: bool = False) -> None:
+    def start(self, vnc_port: Optional[int] = None, port: Optional[int] = None, require_auth: bool = False, window_id: Optional[str] = None) -> None:
         # If both servers are already running, throw an error
         if self.__vnc_handle is not None and self.__novnc_handle is not None:
             raise RuntimeError('Server is already running')
@@ -148,6 +148,7 @@ class _VNCServer:
         vnc_command = (
             f"x11vnc -display {self.__desktop._display} -forever -wait 50 -shared "
             f"-rfbport {self._vnc_port} {pwd_flag} 2>/tmp/x11vnc_stderr.log"
+            f"-id {window_id}" if window_id else ""
         )
         
         novnc_command = (
@@ -476,3 +477,21 @@ class Sandbox(SandboxBase):
         :param file_or_url: The file or URL to open.
         """
         self.commands.run(f"xdg-open {file_or_url}", background=True, envs={"DISPLAY": self._display})
+
+    def get_current_window_id(self) -> str:
+        """
+        Get the current window ID.
+        """
+        return self.commands.run("xdotool getwindowfocus", envs={"DISPLAY": self._display}).stdout.strip()
+
+    def get_application_windows(self, application: str) -> list[str]:
+        """
+        Get the window IDs of all windows for the given application.
+        """
+        return self.commands.run(f"xdotool search --onlyvisible --class {application}", envs={"DISPLAY": self._display}).stdout.strip().split("\n")
+
+    def get_window_title(self, window_id: str) -> str:
+        """
+        Get the title of the window with the given ID.
+        """
+        return self.commands.run(f"xdotool getwindowname {window_id}", envs={"DISPLAY": self._display}).stdout.strip()

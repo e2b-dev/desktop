@@ -15,6 +15,7 @@ Check out the [example open-source app](https://github.com/e2b-dev/open-computer
 ### Basic SDK usage examples
 
 Check out the examples directory for more examples on how to use the SDK:
+
 - [Python](./examples/basic-python)
 - [JavaScript](./examples/basic-javascript)
 
@@ -90,6 +91,25 @@ print(url)
 desktop.stream.stop()
 ```
 
+### Streaming specific application
+
+```python
+from e2b_desktop import Sandbox
+desktop = Sandbox()
+
+# Get current (active) window ID
+window_id = desktop.get_current_window_id()
+
+# Get all windows of the application
+window_ids = desktop.get_application_windows("Firefox")
+
+# Start the stream
+desktop.stream.start(window_id=window_ids[0])
+
+# Stop the stream
+desktop.stream.stop()
+```
+
 ### Mouse control
 
 ```python
@@ -125,6 +145,24 @@ desktop.press("enter")
 desktop.press("space")
 desktop.press("backspace")
 desktop.press(["ctrl", "c"]) # Key combination
+```
+
+### Window control
+
+**Python**
+
+```python
+from e2b_desktop import Sandbox
+desktop = Sandbox()
+
+# Get current (active) window ID
+window_id = desktop.get_current_window_id()
+
+# Get all windows of the application
+window_ids = desktop.get_application_windows("Firefox")
+
+# Get window title
+title = desktop.get_window_title(window_id)
 ```
 
 ### Screenshot
