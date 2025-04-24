@@ -162,7 +162,7 @@ class _VNCServer:
 
         self.__desktop.commands.run(vnc_command)
 
-        self.__novnc_handle = self.__desktop.commands.run(novnc_command, background=True)
+        self.__novnc_handle = self.__desktop.commands.run(novnc_command, background=True, timeout=0)
         if not self._wait_for_port(self._port):
             raise TimeoutException("Could not start noVNC server")
 
@@ -231,7 +231,8 @@ class Sandbox(SandboxBase):
         self.commands.run(
             f"Xvfb {self._display} -ac -screen 0 {width}x{height}x24"
             f" -retro -dpi {dpi or 96} -nolisten tcp -nolisten unix",
-            background=True
+            background=True,
+            timeout=0,
         )
 
         if not self._wait_and_verify(
@@ -272,7 +273,7 @@ class Sandbox(SandboxBase):
             self.commands.run(f"ps aux | grep {self._last_xfce4_pid} | grep -v grep | head -n 1").stdout.strip()
         ):
             self._last_xfce4_pid = self.commands.run(
-                "startxfce4", envs={"DISPLAY": self._display}, background=True
+                "startxfce4", envs={"DISPLAY": self._display}, background=True, timeout=0
             ).pid
 
     @property

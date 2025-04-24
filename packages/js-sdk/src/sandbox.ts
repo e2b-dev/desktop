@@ -213,7 +213,7 @@ export class Sandbox extends SandboxBase {
     await sbx.commands.run(
       `Xvfb ${sbx.display} -ac -screen 0 ${width}x${height}x24 ` +
         `-retro -dpi ${sandboxOpts?.dpi ?? 96} -nolisten tcp -nolisten unix`,
-      { background: true }
+      { background: true, timeoutMs: 0 }
     )
 
     let hasStarted = await sbx.waitAndVerify(
@@ -281,6 +281,7 @@ export class Sandbox extends SandboxBase {
       const result = await this.commands.run('startxfce4', {
         envs: { DISPLAY: this.display },
         background: true,
+        timeoutMs: 0,
       })
       this.lastXfce4Pid = result.pid
     }
@@ -746,6 +747,7 @@ class VNCServer {
 
     this.novncHandle = await this.desktop.commands.run(this.novncCommand, {
       background: true,
+      timeoutMs: 0,
     })
     if (!(await this.waitForPort(this.port))) {
       throw new Error('Could not start noVNC server')
