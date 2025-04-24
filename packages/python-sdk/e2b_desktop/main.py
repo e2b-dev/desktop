@@ -1,7 +1,7 @@
 import time
 from re import search as re_search
 from shlex import quote as quote_string
-from typing import Callable, Dict, Iterator, Literal, Optional, overload, Tuple
+from typing import Callable, Dict, Iterator, Literal, Optional, overload, Tuple, Union
 from uuid import uuid4
 
 from e2b import Sandbox as SandboxBase, CommandHandle, CommandResult, TimeoutException, CommandExitException
@@ -77,7 +77,7 @@ def map_key(key: str) -> str:
 
 class _VNCServer:
     def __init__(self, desktop: "Sandbox") -> None:
-        self.__novnc_handle: CommandHandle | None = None
+        self.__novnc_handle: Optional[CommandHandle] = None
         
         self._vnc_port = 5900
         self._port = 6080
@@ -438,7 +438,7 @@ class Sandbox(SandboxBase):
                 f"xdotool type --delay {delay_in_ms} {quote_string(chunk)}", envs={"DISPLAY": self._display}
             )
 
-    def press(self, key: str | list[str]):
+    def press(self, key: Union[str,  list[str]]):
         """
         Press a key.
 
