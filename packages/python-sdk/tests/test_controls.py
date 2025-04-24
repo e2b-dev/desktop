@@ -1,4 +1,5 @@
 import os
+import random
 import time
 from e2b_desktop import Sandbox
 from PIL import ImageChops, Image
@@ -17,6 +18,8 @@ def images_are_equal(img1, img2):
 
 def test_right_click(sandbox: Sandbox):
     # Capture the initial screenshot
+    time.sleep(5)  # Wait for UI to load
+
     initial_screenshot_bytes = sandbox.screenshot()
     initial_image = Image.open(io.BytesIO(initial_screenshot_bytes))
     
