@@ -80,3 +80,8 @@ COPY ./settings.json /home/user/.config/Code/User/settings.json
 COPY ./wallpaper.png /usr/share/backgrounds/xfce/wallpaper.png
 RUN mkdir -p /home/user/.config/xfce4/xfconf/xfce-perchannel-xml/
 COPY ./xfce4-desktop.xml /home/user/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml
+
+# Copy firefox policies
+COPY firefox-policies.json /usr/lib/firefox-esr/distribution/policies.json
+COPY firefox-autoconfig.js /usr/lib/firefox-esr/defaults/pref/autoconfig.js
+COPY firefox.cfg /usr/lib/firefox-esr/firefox.cfg
