@@ -1,6 +1,11 @@
 name: Test JS SDK
 
-on: [workflow_call]
+on:
+  workflow_call:
+    secrets:
+      E2B_API_KEY:
+        required: true
+        description: 'E2B API key for testing'
 
 jobs:
   integration_tests:

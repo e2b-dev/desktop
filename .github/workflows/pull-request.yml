@@ -16,5 +16,9 @@ on:
 jobs:
   js-sdk:
     uses: ./.github/workflows/js-sdk-tests.yml
+    secrets:
+      E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
   python-sdk:
     uses: ./.github/workflows/python-sdk-tests.yml
+    secrets:
+      E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
