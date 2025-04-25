@@ -1,5 +1,3 @@
-import os
-import random
 import time
 from e2b_desktop import Sandbox
 from PIL import ImageChops, Image
