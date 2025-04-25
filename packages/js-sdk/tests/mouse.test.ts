@@ -1,5 +1,5 @@
 import { expect } from "vitest";
-import { sandboxTest } from "./setup";
+import { sandboxTest, wait } from "./setup";
 
 sandboxTest("cursor position", async ({ sandbox }) => {
   const pos = await sandbox.getCursorPosition();
@@ -13,7 +13,7 @@ sandboxTest("cursor position", async ({ sandbox }) => {
 });
 
 sandboxTest("mouse move", async ({ sandbox }) => {
-  await sleep(5_000);
+  await wait(5_000);
   await sandbox.moveMouse(100, 200);
   const pos2 = await sandbox.getCursorPosition();
   expect(pos2).toEqual({ x: 100, y: 200 });
