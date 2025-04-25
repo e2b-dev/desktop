@@ -1,26 +1,20 @@
 name: Test JS SDK
 
-on:
-  pull_request:
-    branches:
-      - main
-    paths:
-      - 'packages/js-sdk/**'
-      - '.github/workflows/js_sdk_tests.yml'
-
-permissions:
-  contents: read
+on: [workflow_call]
 
 jobs:
-  test:
+  integration_tests:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write
     defaults:
       run:
         working-directory: ./packages/js-sdk
     name: Build and test SDK
-    runs-on: ubuntu-22.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install pnpm
         uses: pnpm/action-setup@v3

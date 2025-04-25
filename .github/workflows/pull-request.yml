@@ -1,0 +1,20 @@
+name: Pull Request
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  js-sdk:
+    uses: ./.github/workflows/js-sdk-tests.yml
+  python-sdk:
+    uses: ./.github/workflows/python-sdk-tests.yml
