@@ -154,8 +154,7 @@ class _VNCServer:
 
         vnc_command = (
             f"x11vnc -bg -display {self.__desktop._display} -forever -wait 50 -shared "
-            f"-rfbport {self._vnc_port} {pwd_flag} 2>/tmp/x11vnc_stderr.log "
-            f"{window_id_flag}"
+            f"-rfbport {self._vnc_port} {pwd_flag} 2>/tmp/x11vnc_stderr.log {window_id_flag}"
         )
         
         novnc_command = (
