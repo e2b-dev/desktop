@@ -119,8 +119,8 @@ export interface SandboxOpts extends SandboxOptsBase {
 export class Sandbox extends SandboxBase {
   protected static override readonly defaultTemplate: string = 'desktop'
   private lastXfce4Pid: number | null = null
-  readonly display: string
-  readonly stream: VNCServer
+  public display: string = ':0'
+  public stream: VNCServer = new VNCServer(this)
 
   /**
    * Use {@link Sandbox.create} to create a new Sandbox instead.
@@ -131,15 +131,12 @@ export class Sandbox extends SandboxBase {
    * @access protected
    */
   constructor(
-    opts: Omit<SandboxOpts, 'timeoutMs' | 'envs' | 'metadata'> & {
+    opts: Omit<SandboxOpts, 'timeoutMs' | 'metadata'> & {
       sandboxId: string
       envdVersion?: string
     }
   ) {
     super(opts)
-    this.display = opts.display || ':0'
-    this.lastXfce4Pid = null
-    this.stream = new VNCServer(this)
   }
   /**
    * Create a new sandbox from the default `desktop` sandbox template.
@@ -189,25 +186,39 @@ export class Sandbox extends SandboxBase {
 
     const config = new ConnectionConfig(sandboxOpts)
 
+    // Add DISPLAY environment variable if not already set
+    const display = opts?.display || ':0'
+    const sandboxOptsWithDisplay = {
+      ...sandboxOpts,
+      envs: {
+        ...sandboxOpts?.envs,
+        DISPLAY: display,
+      },
+    }
+
     let sbx
     if (config.debug) {
       sbx = new this({
         sandboxId: 'desktop',
-        ...sandboxOpts,
+        ...sandboxOptsWithDisplay,
         ...config,
       }) as InstanceType<S>
     } else {
       const sandbox = await this.createSandbox(
         template,
-        sandboxOpts?.timeoutMs ?? this.defaultSandboxTimeoutMs,
-        sandboxOpts
+        sandboxOptsWithDisplay?.timeoutMs ?? this.defaultSandboxTimeoutMs,
+        sandboxOptsWithDisplay
       )
       sbx = new this({
         ...sandbox,
-        ...sandboxOpts,
+        ...sandboxOptsWithDisplay,
         ...config,
       }) as InstanceType<S>
     }
+
+    sbx.display = display
+    sbx.lastXfce4Pid = null
+    sbx.stream = new VNCServer(sbx)
 
     const [width, height] = sandboxOpts?.resolution ?? [1024, 768]
     await sbx.commands.run(
@@ -279,7 +290,6 @@ export class Sandbox extends SandboxBase {
         .includes('[xfce4-session] <defunct>')
     ) {
       const result = await this.commands.run('startxfce4', {
-        envs: { DISPLAY: this.display },
         background: true,
         timeoutMs: 0,
       })
@@ -311,9 +321,7 @@ export class Sandbox extends SandboxBase {
   async screenshot(format: 'stream'): Promise<ReadableStream<Uint8Array>>
   async screenshot(format: 'bytes' | 'blob' | 'stream' = 'bytes') {
     const path = `/tmp/screenshot-${generateRandomString()}.png`
-    await this.commands.run(`scrot --pointer ${path}`, {
-      envs: { DISPLAY: this.display },
-    })
+    await this.commands.run(`scrot --pointer ${path}`)
 
     // @ts-expect-error
     const file = await this.files.read(path, { format })
@@ -329,9 +337,7 @@ export class Sandbox extends SandboxBase {
       await this.moveMouse(x, y)
     }
 
-    await this.commands.run('xdotool click 1', {
-      envs: { DISPLAY: this.display },
-    })
+    await this.commands.run('xdotool click 1')
   }
 
   /**
@@ -342,9 +348,7 @@ export class Sandbox extends SandboxBase {
       await this.moveMouse(x, y)
     }
 
-    await this.commands.run('xdotool click --repeat 2 1', {
-      envs: { DISPLAY: this.display },
-    })
+    await this.commands.run('xdotool click --repeat 2 1')
   }
 
   /**
@@ -355,9 +359,7 @@ export class Sandbox extends SandboxBase {
       await this.moveMouse(x, y)
     }
 
-    await this.commands.run('xdotool click 3', {
-      envs: { DISPLAY: this.display },
-    })
+    await this.commands.run('xdotool click 3')
   }
 
   /**
@@ -368,9 +370,7 @@ export class Sandbox extends SandboxBase {
       await this.moveMouse(x, y)
     }
 
-    await this.commands.run('xdotool click 2', {
-      envs: { DISPLAY: this.display },
-    })
+    await this.commands.run('xdotool click 2')
   }
 
   /**
@@ -383,9 +383,7 @@ export class Sandbox extends SandboxBase {
     amount: number = 1
   ): Promise<void> {
     const button = direction === 'up' ? '4' : '5'
-    await this.commands.run(`xdotool click --repeat ${amount} ${button}`, {
-      envs: { DISPLAY: this.display },
-    })
+    await this.commands.run(`xdotool click --repeat ${amount} ${button}`)
   }
 
   /**
@@ -394,9 +392,7 @@ export class Sandbox extends SandboxBase {
    * @param y - The y coordinate.
    */
   async moveMouse(x: number, y: number): Promise<void> {
-    await this.commands.run(`xdotool mousemove --sync ${x} ${y}`, {
-      envs: { DISPLAY: this.display },
-    })
+    await this.commands.run(`xdotool mousemove --sync ${x} ${y}`)
   }
 
   /**
@@ -405,9 +401,7 @@ export class Sandbox extends SandboxBase {
   async mousePress(
     button: 'left' | 'right' | 'middle' = 'left'
   ): Promise<void> {
-    await this.commands.run(`xdotool mousedown ${MOUSE_BUTTONS[button]}`, {
-      envs: { DISPLAY: this.display },
-    })
+    await this.commands.run(`xdotool mousedown ${MOUSE_BUTTONS[button]}`)
   }
 
   /**
@@ -416,9 +410,7 @@ export class Sandbox extends SandboxBase {
   async mouseRelease(
     button: 'left' | 'right' | 'middle' = 'left'
   ): Promise<void> {
-    await this.commands.run(`xdotool mouseup ${MOUSE_BUTTONS[button]}`, {
-      envs: { DISPLAY: this.display },
-    })
+    await this.commands.run(`xdotool mouseup ${MOUSE_BUTTONS[button]}`)
   }
 
   /**
@@ -427,9 +419,7 @@ export class Sandbox extends SandboxBase {
    * @throws Error if cursor position cannot be determined
    */
   async getCursorPosition(): Promise<CursorPosition> {
-    const result = await this.commands.run('xdotool getmouselocation', {
-      envs: { DISPLAY: this.display },
-    })
+    const result = await this.commands.run('xdotool getmouselocation')
 
     const match = result.stdout.match(/x:(\d+)\s+y:(\d+)/)
     if (!match) {
@@ -452,9 +442,7 @@ export class Sandbox extends SandboxBase {
    * @throws Error if screen size cannot be determined
    */
   async getScreenSize(): Promise<ScreenSize> {
-    const result = await this.commands.run('xrandr', {
-      envs: { DISPLAY: this.display },
-    })
+    const result = await this.commands.run('xrandr')
 
     const match = result.stdout.match(/(\d+x\d+)/)
     if (!match) {
@@ -509,8 +497,7 @@ export class Sandbox extends SandboxBase {
 
     for (const chunk of chunks) {
       await this.commands.run(
-        `xdotool type --delay ${options.delayInMs} ${this.quoteString(chunk)}`,
-        { envs: { DISPLAY: this.display } }
+        `xdotool type --delay ${options.delayInMs} ${this.quoteString(chunk)}`
       )
     }
   }
@@ -526,9 +513,7 @@ export class Sandbox extends SandboxBase {
       key = mapKey(key)
     }
 
-    await this.commands.run(`xdotool key ${key}`, {
-      envs: { DISPLAY: this.display },
-    })
+    await this.commands.run(`xdotool key ${key}`)
   }
 
   /**
@@ -551,9 +536,7 @@ export class Sandbox extends SandboxBase {
    * @param ms - The amount of time to wait in milliseconds.
    */
   async wait(ms: number): Promise<void> {
-    await this.commands.run(`sleep ${ms / 1000}`, {
-      envs: { DISPLAY: this.display },
-    })
+    await this.commands.run(`sleep ${ms / 1000}`)
   }
 
   /**
@@ -563,7 +546,6 @@ export class Sandbox extends SandboxBase {
   async open(fileOrUrl: string): Promise<void> {
     await this.commands.run(`xdg-open ${fileOrUrl}`, {
       background: true,
-      envs: { DISPLAY: this.display },
     })
   }
 
@@ -572,9 +554,7 @@ export class Sandbox extends SandboxBase {
    * @returns The ID of the current window.
    */
   async getCurrentWindowId(): Promise<string> {
-    const result = await this.commands.run('xdotool getwindowfocus', {
-      envs: { DISPLAY: this.display },
-    })
+    const result = await this.commands.run('xdotool getwindowfocus')
     return result.stdout.trim()
   }
 
@@ -585,10 +565,7 @@ export class Sandbox extends SandboxBase {
    */
   async getApplicationWindows(application: string): Promise<string[]> {
     const result = await this.commands.run(
-      `xdotool search --onlyvisible --class ${application}`,
-      {
-        envs: { DISPLAY: this.display },
-      }
+      `xdotool search --onlyvisible --class ${application}`
     )
 
     return result.stdout.trim().split('\n')
@@ -600,12 +577,7 @@ export class Sandbox extends SandboxBase {
    * @returns The title of the window.
    */
   async getWindowTitle(windowId: string): Promise<string> {
-    const result = await this.commands.run(
-      `xdotool getwindowname ${windowId}`,
-      {
-        envs: { DISPLAY: this.display },
-      }
-    )
+    const result = await this.commands.run(`xdotool getwindowname ${windowId}`)
 
     return result.stdout.trim()
   }

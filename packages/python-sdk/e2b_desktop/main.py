@@ -215,6 +215,13 @@ class Sandbox(SandboxBase):
 
         :return: sandbox instance for the new sandbox
         """
+        self._display = display or ":0"
+
+        # Initialize environment variables with DISPLAY
+        if envs is None:
+            envs = {}
+        envs["DISPLAY"] = self._display
+
         super().__init__(
             template=template,
             timeout=timeout,
@@ -226,7 +233,7 @@ class Sandbox(SandboxBase):
             sandbox_id=sandbox_id,
             request_timeout=request_timeout,
         )
-        self._display = display or ":0"
+
         self._last_xfce4_pid = None
 
         width, height = resolution or (1024, 768)
@@ -275,7 +282,7 @@ class Sandbox(SandboxBase):
             self.commands.run(f"ps aux | grep {self._last_xfce4_pid} | grep -v grep | head -n 1").stdout.strip()
         ):
             self._last_xfce4_pid = self.commands.run(
-                "startxfce4", envs={"DISPLAY": self._display}, background=True, timeout=0
+                "startxfce4", background=True, timeout=0
             ).pid
 
     @property
@@ -309,7 +316,7 @@ class Sandbox(SandboxBase):
         """
         screenshot_path = f"/tmp/screenshot-{uuid4()}.png"
 
-        self.commands.run(f"scrot --pointer {screenshot_path}", envs={"DISPLAY": self._display})
+        self.commands.run(f"scrot --pointer {screenshot_path}")
 
         file = self.files.read(screenshot_path, format=format)
         self.files.remove(screenshot_path)
@@ -321,7 +328,7 @@ class Sandbox(SandboxBase):
         """
         if x and y:
             self.move_mouse(x, y)
-        self.commands.run("xdotool click 1", envs={"DISPLAY": self._display})
+        self.commands.run("xdotool click 1")
 
     def double_click(self, x: Optional[int] = None, y: Optional[int] = None):
         """
@@ -329,7 +336,7 @@ class Sandbox(SandboxBase):
         """
         if x and y:
             self.move_mouse(x, y)
-        self.commands.run("xdotool click --repeat 2 1", envs={"DISPLAY": self._display})
+        self.commands.run("xdotool click --repeat 2 1")
 
     def right_click(self, x: Optional[int] = None, y: Optional[int] = None):
         if (x is None) != (y is None):
@@ -339,7 +346,7 @@ class Sandbox(SandboxBase):
         """
         if x and y:
             self.move_mouse(x, y)
-        self.commands.run("xdotool click 3", envs={"DISPLAY": self._display})
+        self.commands.run("xdotool click 3")
 
     def middle_click(self, x: Optional[int] = None, y: Optional[int] = None):
         """
@@ -347,7 +354,7 @@ class Sandbox(SandboxBase):
         """
         if x and y:
             self.move_mouse(x, y)
-        self.commands.run("xdotool click 2", envs={"DISPLAY": self._display})
+        self.commands.run("xdotool click 2")
 
     def scroll(self, direction: Literal["up", "down"] = "down", amount: int = 1):
         """
@@ -357,8 +364,7 @@ class Sandbox(SandboxBase):
         :param amount: The amount to scroll.
         """
         self.commands.run(
-            f"xdotool click --repeat {amount} {'4' if direction == 'up' else '5'}",
-            envs={"DISPLAY": self._display}
+            f"xdotool click --repeat {amount} {'4' if direction == 'up' else '5'}"
         )
 
     def move_mouse(self, x: int, y: int):
@@ -368,19 +374,19 @@ class Sandbox(SandboxBase):
         :param x: The x coordinate.
         :param y: The y coordinate.
         """
-        self.commands.run(f"xdotool mousemove --sync {x} {y}", envs={"DISPLAY": self._display})
+        self.commands.run(f"xdotool mousemove --sync {x} {y}")
 
     def mouse_press(self, button: Literal["left", "right", "middle"] = "left"):
         """
         Press the mouse button.
         """
-        self.commands.run(f"xdotool mousedown {MOUSE_BUTTONS[button]}", envs={"DISPLAY": self._display})
+        self.commands.run(f"xdotool mousedown {MOUSE_BUTTONS[button]}")
 
     def mouse_release(self, button: Literal["left", "right", "middle"] = "left"):
         """
         Release the mouse button.
         """
-        self.commands.run(f"xdotool mouseup {MOUSE_BUTTONS[button]}", envs={"DISPLAY": self._display})
+        self.commands.run(f"xdotool mouseup {MOUSE_BUTTONS[button]}")
         
     def get_cursor_position(self) -> tuple[int, int]:
         """
@@ -389,7 +395,7 @@ class Sandbox(SandboxBase):
         :return: A tuple with the x and y coordinates
         :raises RuntimeError: If the cursor position cannot be determined
         """
-        result = self.commands.run("xdotool getmouselocation", envs={"DISPLAY": self._display})
+        result = self.commands.run("xdotool getmouselocation")
             
         groups = re_search(r"x:(\d+)\s+y:(\d+)", result.stdout)
         if not groups:
@@ -408,7 +414,7 @@ class Sandbox(SandboxBase):
         :return: A tuple with the width and height
         :raises RuntimeError: If the screen size cannot be determined
         """
-        result = self.commands.run("xrandr", envs={"DISPLAY": self._display})
+        result = self.commands.run("xrandr")
             
         _match = re_search(r"(\d+x\d+)", result.stdout)
         if not _match:
@@ -438,7 +444,7 @@ class Sandbox(SandboxBase):
 
         for chunk in break_into_chunks(text, chunk_size):
             self.commands.run(
-                f"xdotool type --delay {delay_in_ms} {quote_string(chunk)}", envs={"DISPLAY": self._display}
+                f"xdotool type --delay {delay_in_ms} {quote_string(chunk)}"
             )
 
     def press(self, key: Union[str,  list[str]]):
@@ -452,7 +458,7 @@ class Sandbox(SandboxBase):
         else:
             key = map_key(key)
 
-        self.commands.run(f"xdotool key {key}", envs={"DISPLAY": self._display})
+        self.commands.run(f"xdotool key {key}")
 
     def drag(self, fr: tuple[int, int], to: tuple[int, int]):
         """
@@ -472,7 +478,7 @@ class Sandbox(SandboxBase):
 
         :param ms: The amount of time to wait in milliseconds.
         """
-        self.commands.run(f"sleep {ms / 1000}", envs={"DISPLAY": self._display})
+        self.commands.run(f"sleep {ms / 1000}")
 
     def open(self, file_or_url: str):
         """
@@ -480,22 +486,22 @@ class Sandbox(SandboxBase):
 
         :param file_or_url: The file or URL to open.
         """
-        self.commands.run(f"xdg-open {file_or_url}", background=True, envs={"DISPLAY": self._display})
+        self.commands.run(f"xdg-open {file_or_url}", background=True)
 
     def get_current_window_id(self) -> str:
         """
         Get the current window ID.
         """
-        return self.commands.run("xdotool getwindowfocus", envs={"DISPLAY": self._display}).stdout.strip()
+        return self.commands.run("xdotool getwindowfocus").stdout.strip()
 
     def get_application_windows(self, application: str) -> list[str]:
         """
         Get the window IDs of all windows for the given application.
         """
-        return self.commands.run(f"xdotool search --onlyvisible --class {application}", envs={"DISPLAY": self._display}).stdout.strip().split("\n")
+        return self.commands.run(f"xdotool search --onlyvisible --class {application}").stdout.strip().split("\n")
 
     def get_window_title(self, window_id: str) -> str:
         """
         Get the title of the window with the given ID.
         """
-        return self.commands.run(f"xdotool getwindowname {window_id}", envs={"DISPLAY": self._display}).stdout.strip()
+        return self.commands.run(f"xdotool getwindowname {window_id}").stdout.strip()
