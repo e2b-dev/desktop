@@ -148,12 +148,15 @@ class _VNCServer:
             self.__desktop.commands.run(f"x11vnc -storepasswd {self._novnc_password} ~/.vnc/passwd")
             pwd_flag = "-usepw"
 
+        window_id_flag = ""
+        if window_id:
+            window_id_flag = f"-id {window_id}"
+
         vnc_command = (
             f"x11vnc -bg -display {self.__desktop._display} -forever -wait 50 -shared "
-            f"-rfbport {self._vnc_port} {pwd_flag} 2>/tmp/x11vnc_stderr.log"
+            f"-rfbport {self._vnc_port} {pwd_flag} 2>/tmp/x11vnc_stderr.log "
+            f"{window_id_flag}"
         )
-        if window_id:
-            vnc_command += f" -id {window_id}"
         
         novnc_command = (
             f"cd /opt/noVNC/utils && ./novnc_proxy --vnc localhost:{self._vnc_port} "
