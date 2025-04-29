@@ -153,7 +153,7 @@ class _VNCServer:
             f"-rfbport {self._vnc_port} {pwd_flag} 2>/tmp/x11vnc_stderr.log"
         )
         if window_id:
-            vnc_command += f"-id {window_id}"
+            vnc_command += f" -id {window_id}"
         
         novnc_command = (
             f"cd /opt/noVNC/utils && ./novnc_proxy --vnc localhost:{self._vnc_port} "
