@@ -505,3 +505,9 @@ class Sandbox(SandboxBase):
         Get the title of the window with the given ID.
         """
         return self.commands.run(f"xdotool getwindowname {window_id}").stdout.strip()
+
+    def launch(self, application: str, uri: Optional[str] = None):
+        """
+        Launch an application.
+        """
+        self.commands.run(f"gtk-launch {application} {uri or ''}", background=True, timeout=0)

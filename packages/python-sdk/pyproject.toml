@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "e2b-desktop"
-version = "1.6.5"
+version = "1.7.0"
 description = "E2B Desktop Sandbox - Deskstop sandbox in cloud powered by E2B"
 authors = ["e2b <hello@e2b.dev>"]
 license = "Apache-2.0"

@@ -386,6 +386,29 @@ await desktop.files.write('/home/user/index.js', "console.log('hello')") // Firs
 await desktop.open('/home/user/index.js') // Then open it
 ```
 
+### Launch applications
+
+**Python**
+
+```python
+from e2b_desktop import Sandbox
+desktop = Sandbox()
+
+# Launch the application
+desktop.launch('google-chrome')
+```
+
+**JavaScript**
+
+```javascript
+import { Sandbox } from '@e2b/desktop'
+
+const desktop = await Sandbox.create()
+
+// Launch the application
+await desktop.launch('google-chrome')
+```
+
 ### Run any bash commands
 
 **Python**
