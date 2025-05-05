@@ -73,6 +73,9 @@ RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key
     apt-get update && \
     apt-get install -y google-chrome-stable
 
+# Set Firefox as default browser
+RUN update-alternatives --set x-www-browser /usr/bin/firefox-esr
+
 # Copy Chrome desktop shortcut
 COPY google-chrome.desktop /usr/share/applications/google-chrome.desktop
 
