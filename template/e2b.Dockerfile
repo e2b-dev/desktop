@@ -25,7 +25,7 @@ RUN yes | unminimize && \
     # XFCE desktop environment:
     apt-get install -y xfce4 xfce4-goodies && \ 
     # Basic system utilities:
-    apt-get install -y util-linux sudo curl git && \
+    apt-get install -y util-linux sudo curl git wget && \
     # Pip will be used to install Python packages:
     apt-get install -y python3-pip && \ 
     # Tools used by the desktop SDK:
@@ -67,8 +67,17 @@ RUN apt-get install -y software-properties-common && \
     apt-get install -y --no-install-recommends \
     firefox-esr
 
+# Install Chrome
+RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
+    echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
+    apt-get update && \
+    apt-get install -y google-chrome-stable
+
+# Copy Chrome desktop shortcut
+COPY google-chrome.desktop /usr/share/applications/google-chrome.desktop
+
 # Install VS Code
-RUN apt-get install wget apt-transport-https && \
+RUN apt-get install apt-transport-https && \
     wget -qO- https://packages.microsoft.com/keys/microsoft.asc | apt-key add - && \
     add-apt-repository -y "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main" && \
     apt-get update -y && \
