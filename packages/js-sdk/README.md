@@ -39,15 +39,29 @@ npm install @e2b/desktop
 ```javascript
 import { Sandbox } from '@e2b/desktop'
 
-// Basic initialization
+// Start a new desktop sandbox
 const desktop = await Sandbox.create()
 
-// With custom configuration
-const desktop = await Sandbox.create({
-  display: ':0', // Custom display (defaults to :0)
-  resolution: [1920, 1080], // Custom resolution
-  dpi: 96, // Custom DPI
+// Launch an application
+await desktop.launch('google-chrome') // or vscode, firefox, etc.
+
+// Wait 5s for the application to open
+await desktop.wait(5000)
+
+// Stream the application's window
+await desktop.stream.start({
+  windowId: await desktop.getCurrentWindowId(),
+  requireAuth: true,
 })
+
+// Get the stream auth key
+const authKey = desktop.stream.getAuthKey()
+
+// Print the stream URL
+console.log('Stream URL:', desktop.stream.getUrl({ authKey }))
+
+// Kill the sandbox after the tasks are finished
+// await desktop.kill()
 ```
 
 ## Features

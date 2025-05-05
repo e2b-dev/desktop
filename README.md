@@ -52,15 +52,29 @@ npm install @e2b/desktop
 ```python
 from e2b_desktop import Sandbox
 
-# Basic initialization
+# Create a new desktop sandbox
 desktop = Sandbox()
 
-# With custom configuration
-desktop = Sandbox(
-    display=":0",  # Custom display (defaults to :0)
-    resolution=(1920, 1080),  # Custom resolution
-    dpi=96,  # Custom DPI
+# Launch an application
+desktop.launch('google-chrome')  # or vscode, firefox, etc.
+
+# Wait 5s for the application to open
+desktop.wait(5000)
+
+# Stream the application's window
+desktop.stream.start(
+    window_id=desktop.get_current_window_id(),
+    require_auth=True
 )
+
+# Get the stream auth key
+auth_key = desktop.stream.get_auth_key()
+
+# Print the stream URL
+print('Stream URL:', desktop.stream.get_url(auth_key=auth_key))
+
+# Kill the sandbox after the tasks are finished
+# desktop.kill()
 ```
 
 **JavaScript**
@@ -68,15 +82,29 @@ desktop = Sandbox(
 ```javascript
 import { Sandbox } from '@e2b/desktop'
 
-// Basic initialization
+// Start a new desktop sandbox
 const desktop = await Sandbox.create()
 
-// With custom configuration
-const desktop = await Sandbox.create({
-  display: ':0', // Custom display (defaults to :0)
-  resolution: [1920, 1080], // Custom resolution
-  dpi: 96, // Custom DPI
+// Launch an application
+await desktop.launch('google-chrome') // or vscode, firefox, etc.
+
+// Wait 5s for the application to open
+await desktop.wait(5000)
+
+// Stream the application's window
+await desktop.stream.start({
+  windowId: await desktop.getCurrentWindowId(),
+  requireAuth: true,
 })
+
+// Get the stream auth key
+const authKey = desktop.stream.getAuthKey()
+
+// Print the stream URL
+console.log('Stream URL:', desktop.stream.getUrl({ authKey }))
+
+// Kill the sandbox after the tasks are finished
+// await desktop.kill()
 ```
 
 ## Features
