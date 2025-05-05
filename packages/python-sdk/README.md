@@ -155,8 +155,6 @@ desktop.press(["ctrl", "c"]) # Key combination
 
 ### Window control
 
-**Python**
-
 ```python
 from e2b_desktop import Sandbox
 desktop = Sandbox()
@@ -193,6 +191,16 @@ desktop = Sandbox()
 # Open file with default application
 desktop.files.write("/home/user/index.js", "console.log('hello')") # First create the file
 desktop.open("/home/user/index.js") # Then open it
+```
+
+### Launch applications
+
+```python
+from e2b_desktop import Sandbox
+desktop = Sandbox()
+
+# Launch the application
+desktop.launch('google-chrome')
 ```
 
 ### Run any bash commands
