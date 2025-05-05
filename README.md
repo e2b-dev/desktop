@@ -58,12 +58,14 @@ desktop = Sandbox()
 # Launch an application
 desktop.launch('google-chrome')  # or vscode, firefox, etc.
 
-# Wait 5s for the application to open
-desktop.wait(5000)
+# Wait 10s for the application to open
+desktop.wait(10000)
 
 # Stream the application's window
+# Note: There can be only one stream at a time
+# You need to stop the current stream before streaming another application
 desktop.stream.start(
-    window_id=desktop.get_current_window_id(),
+    window_id=desktop.get_current_window_id(), # if not provided the whole desktop will be streamed
     require_auth=True
 )
 
@@ -88,12 +90,14 @@ const desktop = await Sandbox.create()
 // Launch an application
 await desktop.launch('google-chrome') // or vscode, firefox, etc.
 
-// Wait 5s for the application to open
-await desktop.wait(5000)
+// Wait 10s for the application to open
+await desktop.wait(10000)
 
 // Stream the application's window
+// Note: There can be only one stream at a time
+// You need to stop the current stream before streaming another application
 await desktop.stream.start({
-  windowId: await desktop.getCurrentWindowId(),
+  windowId: await desktop.getCurrentWindowId(), // if not provided the whole desktop will be streamed
   requireAuth: true,
 })
 
