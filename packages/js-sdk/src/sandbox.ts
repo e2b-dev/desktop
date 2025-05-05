@@ -581,6 +581,18 @@ export class Sandbox extends SandboxBase {
 
     return result.stdout.trim()
   }
+
+  /**
+   * Launch an application.
+   * @param application - The application to launch.
+   * @param uri - The URI to open in the application.
+   */
+  async launch(application: string, uri?: string): Promise<void> {
+    await this.commands.run(`gtk-launch ${application} ${uri ?? ''}`, {
+      background: true,
+      timeoutMs: 0,
+    })
+  }
 }
 
 interface VNCServerOptions {
