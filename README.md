@@ -8,11 +8,14 @@ Each sandbox is isolated from the others and can be customized with any dependen
 
 ## Examples
 
-**Basic SDK Examples**
+**SDK Examples**
 
-- Check out the examples directory for more examples on how to use the SDK:
+- Basic Examples:
   - [Python](./examples/basic-python)
   - [JavaScript](./examples/basic-javascript)
+- Streaming Desktop Applications:
+  - [Python](./examples/streaming-apps-python)
+  - [JavaScript](./examples/streaming-apps-javascript)
 
 **[Open Computer Use](https://github.com/e2b-dev/open-computer-use)**
 

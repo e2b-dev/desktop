@@ -144,7 +144,7 @@ class _VNCServer:
         # Set up VNC command
         pwd_flag = "-nopw"
         if self._novnc_auth_enabled:
-            self.__desktop.commands.run("mkdir ~/.vnc")
+            self.__desktop.commands.run("mkdir -p ~/.vnc")
             self.__desktop.commands.run(f"x11vnc -storepasswd {self._novnc_password} ~/.vnc/passwd")
             pwd_flag = "-usepw"
 

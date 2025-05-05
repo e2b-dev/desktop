@@ -643,7 +643,8 @@ class VNCServer {
   private async getVNCCommand(windowId?: string): Promise<string> {
     let pwdFlag = '-nopw'
     if (this.novncAuthEnabled) {
-      await this.desktop.commands.run('mkdir ~/.vnc')
+      // Create .vnc directory if it doesn't exist
+      await this.desktop.commands.run('mkdir -p ~/.vnc')
       await this.desktop.commands.run(
         `x11vnc -storepasswd ${this.password} ~/.vnc/passwd`
       )
