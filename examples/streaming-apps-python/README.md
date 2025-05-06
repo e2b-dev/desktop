@@ -2,9 +2,9 @@
 
 Streaming applications is a feature of the E2B Desktop Sandbox.
 
-| Chrome Window                          | VS Code Window                          |
-| -------------------------------------- | --------------------------------------- |
-| ![Chrome streaming window](chrome.png) | ![VS Code streaming window](vscode.png) |
+| Streaming Chrome Window                                 | Streaming VS Code Window                                 |
+| ------------------------------------------------------- | -------------------------------------------------------- |
+| ![Chrome streaming window](../readme-assets/chrome.png) | ![VS Code streaming window](../readme-assets/vscode.png) |
 
 > [!WARNING]
 >
