@@ -2,6 +2,10 @@
 
 Streaming applications is a feature of the E2B Desktop Sandbox.
 
+| Chrome Window                          | VS Code Window                          |
+| -------------------------------------- | --------------------------------------- |
+| ![Chrome streaming window](chrome.png) | ![VS Code streaming window](vscode.png) |
+
 > [!WARNING]
 >
 > - Will raise an error if the desired application is not open yet
@@ -34,8 +38,8 @@ print('Desktop sandbox created', desktop.sandbox_id)
 print('Launching Google Chrome')
 desktop.launch('google-chrome')  # or vscode, firefox, etc.
 
-# Wait 10s for the application to open
-desktop.wait(10000)
+# Wait 15s for the application to open
+desktop.wait(15000)
 
 # Stream the application's window
 # Note: there can be only one stream at a time
@@ -71,8 +75,8 @@ desktop.stream.stop()
 print('Launching VS Code')
 desktop.launch('code')
 
-# Wait 10s for the application to open
-desktop.wait(10000)
+# Wait 15s for the application to open
+desktop.wait(15000)
 
 # Start streaming the new application
 print('Starting to stream VS Code')
