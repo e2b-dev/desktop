@@ -1,7 +1,7 @@
 {
   "name": "@e2b/desktop-python",
   "private": true,
-  "version": "1.7.1",
+  "version": "1.7.1-beta.1",
   "scripts": {
     "test": "poetry run pytest -n 4 --verbose -x",
     "example": "poetry run python3 example.py",

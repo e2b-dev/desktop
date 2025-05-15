@@ -1,6 +1,6 @@
 {
   "name": "@e2b/desktop",
-  "version": "1.9.1",
+  "version": "1.9.1-beta.1",
   "description": "E2B Desktop Sandbox - isolated cloud environment with a desktop-like interface powered by E2B. Ready for AI Computer Use",
   "author": {
     "name": "FoundryLabs, Inc.",
@@ -61,6 +61,6 @@
     "vitest": "^3.0.5"
   },
   "dependencies": {
-    "e2b": "^1.4.0"
+    "e2b": "^1.2.0-beta.5"
   }
 }
