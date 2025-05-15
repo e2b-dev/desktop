@@ -21,7 +21,7 @@ importers:
   packages/js-sdk:
     dependencies:
       e2b:
-        specifier: ^1.4.0
+        specifier: ^1.2.0-beta.5
         version: 1.4.0
     devDependencies:
       '@types/node':
