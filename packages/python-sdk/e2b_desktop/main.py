@@ -4,7 +4,7 @@ from shlex import quote as quote_string
 from typing import Callable, Dict, Iterator, Literal, Optional, overload, Tuple, Union
 from uuid import uuid4
 
-from e2b import Sandbox as SandboxBase, CommandHandle, CommandResult, TimeoutException, CommandExitException
+from e2b import Sandbox as SandboxBase, CommandHandle, CommandResult, TimeoutException, CommandExitException, ProxyTypes
 
 MOUSE_BUTTONS = {
     "left": 1,
@@ -194,6 +194,7 @@ class Sandbox(SandboxBase):
         debug: Optional[bool] = None,
         sandbox_id: Optional[str] = None,
         request_timeout: Optional[float] = None,
+        proxy: Optional[ProxyTypes] = None,
     ):
         """
         Create a new desktop sandbox.
@@ -212,10 +213,12 @@ class Sandbox(SandboxBase):
         :param debug: If True, the sandbox will be created in debug mode, defaults to `E2B_DEBUG` environment variable
         :param sandbox_id: Sandbox ID to connect to, defaults to `E2B_SANDBOX_ID` environment variable
         :param request_timeout: Timeout for the request in **seconds**
+        :param proxy: Proxy to use for the request and for the requests made to the returned sandbox
 
         :return: sandbox instance for the new sandbox
         """
         self._display = display or ":0"
+        self._last_xfce4_pid = None
 
         # Initialize environment variables with DISPLAY
         if envs is None:
@@ -232,26 +235,29 @@ class Sandbox(SandboxBase):
             debug=debug,
             sandbox_id=sandbox_id,
             request_timeout=request_timeout,
+            proxy=proxy,
         )
 
-        self._last_xfce4_pid = None
+        # Only initialize desktop environment if we're not just connecting to an existing sandbox
+        if not sandbox_id:
+            width, height = resolution or (1024, 768)
+            self.commands.run(
+                f"Xvfb {self._display} -ac -screen 0 {width}x{height}x24"
+                f" -retro -dpi {dpi or 96} -nolisten tcp -nolisten unix",
+                background=True,
+                timeout=0,
+            )
 
-        width, height = resolution or (1024, 768)
-        self.commands.run(
-            f"Xvfb {self._display} -ac -screen 0 {width}x{height}x24"
-            f" -retro -dpi {dpi or 96} -nolisten tcp -nolisten unix",
-            background=True,
-            timeout=0,
-        )
+            if not self._wait_and_verify(
+                f"xdpyinfo -display {self._display}", lambda r: r.exit_code == 0
+            ):
+                raise TimeoutException("Could not start Xvfb")
 
-        if not self._wait_and_verify(
-            f"xdpyinfo -display {self._display}", lambda r: r.exit_code == 0
-        ):
-            raise TimeoutException("Could not start Xvfb")
-
-        self.__vnc_server = _VNCServer(self)
-        self._start_xfce4()
-
+            self.__vnc_server = _VNCServer(self)
+            self._start_xfce4()
+        else:
+            # When connecting to existing sandbox, just initialize VNC server
+            self.__vnc_server = _VNCServer(self)
 
     def _wait_and_verify(
         self, 
