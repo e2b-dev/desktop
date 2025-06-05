@@ -1,6 +1,7 @@
 {
   "name": "@e2b/desktop",
   "version": "1.9.1",
+  "license": "MIT",
   "description": "E2B Desktop Sandbox - isolated cloud environment with a desktop-like interface powered by E2B. Ready for AI Computer Use",
   "author": {
     "name": "FoundryLabs, Inc.",
