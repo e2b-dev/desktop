@@ -61,6 +61,6 @@
     "vitest": "^3.0.5"
   },
   "dependencies": {
-    "e2b": "^1.2.0-beta.5"
+    "e2b": "1.2.0-beta.5"
   }
 }
