@@ -21,8 +21,8 @@ importers:
   packages/js-sdk:
     dependencies:
       e2b:
-        specifier: ^1.2.0-beta.0
-        version: 1.2.0-beta.0
+        specifier: 1.2.0-beta.5
+        version: 1.2.0-beta.5
     devDependencies:
       dotenv:
         specifier: ^16.4.5
@@ -1041,8 +1041,8 @@ packages:
     resolution: {integrity: sha512-ZmdL2rui+eB2YwhsWzjInR8LldtZHGDoQ1ugH85ppHKwpUHL7j7rN0Ti9NCnGiQbhaZ11FpR+7ao1dNsmduNUg==}
     engines: {node: '>=12'}
 
-  e2b@1.2.0-beta.0:
-    resolution: {integrity: sha512-IesqLuFpjCuuJOXVkgCboeZC4rH3lc7vlKCYvhp5pznHOugblkygL9woBqNwfHF1N1YSsXYddfn/91+bFjPvmA==}
+  e2b@1.2.0-beta.5:
+    resolution: {integrity: sha512-E+MW/gD0mzwIsV7UDb2Izdr6argEADTOeEZ7QNJ89XUaLn3d7c/qYNjlIQjn4XYL29qHr7/8va8RVB6tRiIdHw==}
     engines: {node: '>=18'}
 
   eastasianwidth@0.2.0:
@@ -3176,7 +3176,7 @@ snapshots:
 
   dotenv@16.4.5: {}
 
-  e2b@1.2.0-beta.0:
+  e2b@1.2.0-beta.5:
     dependencies:
       '@bufbuild/protobuf': 2.2.2
       '@connectrpc/connect': 2.0.0-rc.3(@bufbuild/protobuf@2.2.2)
