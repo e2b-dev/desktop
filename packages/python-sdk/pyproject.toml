@@ -12,7 +12,7 @@ packages = [{ include = "e2b_desktop" }]
 [tool.poetry.dependencies]
 python = "^3.9"
 
-e2b = "^1.4.0"
+e2b = "^1.5.4"
 requests = "^2.32.3"
 pillow = "^11.1.0"
 
