@@ -7,10 +7,11 @@ from e2b_desktop import Sandbox
 timeout = 60
 logger = logging.getLogger(__name__)
 
+
 @pytest.fixture(scope="function")
 def sandbox(debug):
     # Create a new sandbox instance for each test
-    sandbox = Sandbox(timeout=timeout)
+    sandbox = Sandbox.create(timeout=timeout)
 
     try:
         yield sandbox
@@ -20,7 +21,9 @@ def sandbox(debug):
             sandbox.kill()
         except Exception as e:
             if not debug:
-                logger.warning(f"Failed to kill sandbox — this is expected if the test runs with local envd. Error: {e}")
+                logger.warning(
+                    f"Failed to kill sandbox — this is expected if the test runs with local envd. Error: {e}"
+                )
 
 
 @pytest.fixture

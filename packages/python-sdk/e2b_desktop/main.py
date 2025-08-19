@@ -4,13 +4,17 @@ from shlex import quote as quote_string
 from typing import Callable, Dict, Iterator, Literal, Optional, overload, Tuple, Union
 from uuid import uuid4
 
-from e2b import Sandbox as SandboxBase, CommandHandle, CommandResult, TimeoutException, CommandExitException, ProxyTypes
+from e2b import (
+    Sandbox as SandboxBase,
+    CommandHandle,
+    CommandResult,
+    TimeoutException,
+    CommandExitException,
+)
+from e2b.connection_config import ApiParams
+from typing_extensions import Self, Unpack
 
-MOUSE_BUTTONS = {
-    "left": 1,
-    "right": 3,
-    "middle": 2
-}
+MOUSE_BUTTONS = {"left": 1, "right": 3, "middle": 2}
 
 KEYS = {
     "alt": "Alt_L",
@@ -66,8 +70,9 @@ KEYS = {
     "tab": "Tab",
     "up": "Up",
     "win": "Super_L",
-    "windows": "Super_L"
+    "windows": "Super_L",
 }
+
 
 def map_key(key: str) -> str:
     lower_key = key.lower()
@@ -75,10 +80,11 @@ def map_key(key: str) -> str:
         return KEYS[lower_key]
     return lower_key
 
+
 class _VNCServer:
     def __init__(self, desktop: "Sandbox") -> None:
         self.__novnc_handle: Optional[CommandHandle] = None
-        
+
         self._vnc_port = 5900
         self._port = 6080
         self._novnc_auth_enabled = False
@@ -92,28 +98,34 @@ class _VNCServer:
         return self.__desktop._wait_and_verify(
             f'netstat -tuln | grep ":{port} "', lambda r: r.stdout.strip() != ""
         )
-    
+
     def _check_vnc_running(self) -> bool:
         try:
-            self.__desktop.commands.run('pgrep -x x11vnc')
+            self.__desktop.commands.run("pgrep -x x11vnc")
             return True
         except CommandExitException:
             return False
-    
+
     @staticmethod
     def _generate_password(length: int = 16) -> str:
         import secrets
         import string
 
         characters = string.ascii_letters + string.digits
-        return ''.join(secrets.choice(characters) for _ in range(length))
+        return "".join(secrets.choice(characters) for _ in range(length))
 
-    def get_url(self, auto_connect: bool = True, view_only: bool = False, resize: str = "scale", auth_key: Optional[str] = None) -> str:
+    def get_url(
+        self,
+        auto_connect: bool = True,
+        view_only: bool = False,
+        resize: str = "scale",
+        auth_key: Optional[str] = None,
+    ) -> str:
         params = []
         if auto_connect:
             params.append("autoconnect=true")
         if view_only:
-            params.append(f"view_only=true")
+            params.append("view_only=true")
         if resize:
             params.append(f"resize={resize}")
         if auth_key:
@@ -121,31 +133,41 @@ class _VNCServer:
         if params:
             return f"{self._url}?{'&'.join(params)}"
         return self._url
-    
+
     def get_auth_key(self) -> str:
         if not self._novnc_password:
-            raise RuntimeError('Unable to retrieve stream auth key, check if require_auth is enabled')
+            raise RuntimeError(
+                "Unable to retrieve stream auth key, check if require_auth is enabled"
+            )
         return self._novnc_password
 
-    def start(self, vnc_port: Optional[int] = None, port: Optional[int] = None, require_auth: bool = False, window_id: Optional[str] = None) -> None:
+    def start(
+        self,
+        vnc_port: Optional[int] = None,
+        port: Optional[int] = None,
+        require_auth: bool = False,
+        window_id: Optional[str] = None,
+    ) -> None:
         # If stream is already running, throw an error
         if self._check_vnc_running():
-            raise RuntimeError('Stream is already running')
+            raise RuntimeError("Stream is already running")
 
         # Update parameters if provided
         self._vnc_port = vnc_port or self._vnc_port
         self._port = port or self._port
         self._novnc_auth_enabled = require_auth or self._novnc_auth_enabled
         self._novnc_password = self._generate_password() if require_auth else None
-        
+
         # Update URL with new port
         self._url = f"https://{self.__desktop.get_host(self._port)}/vnc.html"
-        
+
         # Set up VNC command
         pwd_flag = "-nopw"
         if self._novnc_auth_enabled:
             self.__desktop.commands.run("mkdir -p ~/.vnc")
-            self.__desktop.commands.run(f"x11vnc -storepasswd {self._novnc_password} ~/.vnc/passwd")
+            self.__desktop.commands.run(
+                f"x11vnc -storepasswd {self._novnc_password} ~/.vnc/passwd"
+            )
             pwd_flag = "-usepw"
 
         window_id_flag = ""
@@ -156,7 +178,7 @@ class _VNCServer:
             f"x11vnc -bg -display {self.__desktop._display} -forever -wait 50 -shared "
             f"-rfbport {self._vnc_port} {pwd_flag} 2>/tmp/x11vnc_stderr.log {window_id_flag}"
         )
-        
+
         novnc_command = (
             f"cd /opt/noVNC/utils && ./novnc_proxy --vnc localhost:{self._vnc_port} "
             f"--listen {self._port} --web /opt/noVNC > /tmp/novnc.log 2>&1"
@@ -164,14 +186,16 @@ class _VNCServer:
 
         self.__desktop.commands.run(vnc_command)
 
-        self.__novnc_handle = self.__desktop.commands.run(novnc_command, background=True, timeout=0)
+        self.__novnc_handle = self.__desktop.commands.run(
+            novnc_command, background=True, timeout=0
+        )
         if not self._wait_for_port(self._port):
             raise TimeoutException("Could not start noVNC server")
 
     def stop(self) -> None:
         if self._check_vnc_running():
-            self.__desktop.commands.run('pkill x11vnc')
-        
+            self.__desktop.commands.run("pkill x11vnc")
+
         if self.__novnc_handle:
             self.__novnc_handle.kill()
             self.__novnc_handle = None
@@ -179,94 +203,158 @@ class _VNCServer:
 
 class Sandbox(SandboxBase):
     default_template = "desktop"
+    __vnc_server: _VNCServer
+    _last_xfce4_pid: Optional[str] = None
 
-    def __init__(
-        self,
-        resolution: Optional[Tuple[int, int]] = None, 
+    @classmethod
+    def create(
+        cls,
+        template: Optional[str] = None,
+        resolution: Optional[Tuple[int, int]] = None,
         dpi: Optional[int] = None,
         display: Optional[str] = None,
-        template: Optional[str] = None,
         timeout: Optional[int] = None,
         metadata: Optional[Dict[str, str]] = None,
         envs: Optional[Dict[str, str]] = None,
-        api_key: Optional[str] = None,
-        domain: Optional[str] = None,
-        debug: Optional[bool] = None,
-        sandbox_id: Optional[str] = None,
-        request_timeout: Optional[float] = None,
-        proxy: Optional[ProxyTypes] = None,
-    ):
+        secure: Optional[bool] = None,
+        allow_internet_access: bool = True,
+        **opts: Unpack[ApiParams],
+    ) -> Self:
         """
-        Create a new desktop sandbox.
+        Create a new sandbox.
 
-        By default, the sandbox is created from the `desktop` template.
+        By default, the sandbox is created from the default `desktop` sandbox template.
 
+
+        :param template: Sandbox template name or ID
         :param resolution: Startup the desktop with custom screen resolution. Defaults to (1024, 768)
         :param dpi: Startup the desktop with custom DPI. Defaults to 96
         :param display: Startup the desktop with custom display. Defaults to ":0"
-        :param template: Sandbox template name or ID
-        :param timeout: Timeout for the sandbox in **seconds**, default to 300 seconds. Maximum time a sandbox can be kept alive is 24 hours (86_400 seconds) for Pro users and 1 hour (3_600 seconds) for Hobby users
+        :param timeout: Timeout for the sandbox in **seconds**, default to 300 seconds. The maximum time a sandbox can be kept alive is 24 hours (86_400 seconds) for Pro users and 1 hour (3_600 seconds) for Hobby users.
         :param metadata: Custom metadata for the sandbox
         :param envs: Custom environment variables for the sandbox
-        :param api_key: E2B API Key to use for authentication, defaults to `E2B_API_KEY` environment variable
-        :param domain: E2B domain to use for authentication, defaults to `E2B_DOMAIN` environment variable
-        :param debug: If True, the sandbox will be created in debug mode, defaults to `E2B_DEBUG` environment variable
-        :param sandbox_id: Sandbox ID to connect to, defaults to `E2B_SANDBOX_ID` environment variable
-        :param request_timeout: Timeout for the request in **seconds**
-        :param proxy: Proxy to use for the request and for the requests made to the returned sandbox
+        :param secure: Envd is secured with access token and cannot be used without it
+        :param allow_internet_access: Allow sandbox to access the internet, defaults to `True`.
 
-        :return: sandbox instance for the new sandbox
+        :return: A Sandbox instance for the new sandbox
+
+        Use this method instead of using the constructor to create a new sandbox.
         """
-        self._display = display or ":0"
-        self._last_xfce4_pid = None
 
         # Initialize environment variables with DISPLAY
+        display = display or ":0"
         if envs is None:
             envs = {}
-        envs["DISPLAY"] = self._display
+        envs["DISPLAY"] = display
 
-        super().__init__(
+        sbx = super().create(
             template=template,
             timeout=timeout,
             metadata=metadata,
             envs=envs,
-            api_key=api_key,
-            domain=domain,
-            debug=debug,
-            sandbox_id=sandbox_id,
-            request_timeout=request_timeout,
-            proxy=proxy,
+            secure=secure,
+            allow_internet_access=allow_internet_access,
+            **opts,
         )
 
-        # Only initialize desktop environment if we're not just connecting to an existing sandbox
-        if not sandbox_id:
-            width, height = resolution or (1024, 768)
-            self.commands.run(
-                f"Xvfb {self._display} -ac -screen 0 {width}x{height}x24"
-                f" -retro -dpi {dpi or 96} -nolisten tcp -nolisten unix",
-                background=True,
-                timeout=0,
-            )
+        width, height = resolution or (1024, 768)
+        sbx.commands.run(
+            f"Xvfb {display} -ac -screen 0 {width}x{height}x24"
+            f" -retro -dpi {dpi or 96} -nolisten tcp -nolisten unix",
+            background=True,
+            timeout=0,
+        )
 
-            if not self._wait_and_verify(
-                f"xdpyinfo -display {self._display}", lambda r: r.exit_code == 0
-            ):
-                raise TimeoutException("Could not start Xvfb")
+        if not sbx._wait_and_verify(
+            f"xdpyinfo -display {display}", lambda r: r.exit_code == 0
+        ):
+            raise TimeoutException("Could not start Xvfb")
 
-            self.__vnc_server = _VNCServer(self)
-            self._start_xfce4()
-        else:
-            # When connecting to existing sandbox, just initialize VNC server
-            self.__vnc_server = _VNCServer(self)
+        sbx.__vnc_server = _VNCServer(sbx)
+        sbx._start_xfce4()
+
+        return sbx
+
+    @classmethod
+    def beta_create(
+        cls,
+        template: Optional[str] = None,
+        resolution: Optional[Tuple[int, int]] = None,
+        dpi: Optional[int] = None,
+        display: Optional[str] = None,
+        timeout: Optional[int] = None,
+        auto_pause: Optional[bool] = False,
+        metadata: Optional[Dict[str, str]] = None,
+        envs: Optional[Dict[str, str]] = None,
+        secure: Optional[bool] = None,
+        allow_internet_access: bool = True,
+        **opts: Unpack[ApiParams],
+    ) -> Self:
+        """
+        [BETA] This feature is in beta and may change in the future.
+
+        Create a new sandbox.
+
+        By default, the sandbox is created from the default `desktop` sandbox template.
+
+
+        :param template: Sandbox template name or ID
+        :param resolution: Startup the desktop with custom screen resolution. Defaults to (1024, 768)
+        :param dpi: Startup the desktop with custom DPI. Defaults to 96
+        :param display: Startup the desktop with custom display. Defaults to ":0"
+        :param timeout: Timeout for the sandbox in **seconds**, default to 300 seconds. The maximum time a sandbox can be kept alive is 24 hours (86_400 seconds) for Pro users and 1 hour (3_600 seconds) for Hobby users.
+        :param auto_pause: Automatically pause the sandbox after the timeout expires. Defaults to `False`.
+        :param metadata: Custom metadata for the sandbox
+        :param envs: Custom environment variables for the sandbox
+        :param secure: Envd is secured with access token and cannot be used without it
+        :param allow_internet_access: Allow sandbox to access the internet, defaults to `True`.
+
+        :return: A Sandbox instance for the new sandbox
+
+        Use this method instead of using the constructor to create a new sandbox.
+        """
+
+        # Initialize environment variables with DISPLAY
+        display = display or ":0"
+        if envs is None:
+            envs = {}
+        envs["DISPLAY"] = display
+
+        sbx = super().beta_create(
+            template=template,
+            timeout=timeout,
+            metadata=metadata,
+            envs=envs,
+            secure=secure,
+            allow_internet_access=allow_internet_access,
+            **opts,
+        )
+
+        width, height = resolution or (1024, 768)
+        sbx.commands.run(
+            f"Xvfb {display} -ac -screen 0 {width}x{height}x24"
+            f" -retro -dpi {dpi or 96} -nolisten tcp -nolisten unix",
+            background=True,
+            timeout=0,
+        )
+
+        if not sbx._wait_and_verify(
+            f"xdpyinfo -display {display}", lambda r: r.exit_code == 0
+        ):
+            raise TimeoutException("Could not start Xvfb")
+
+        sbx.__vnc_server = _VNCServer(sbx)
+        sbx._start_xfce4()
+
+        return sbx
 
     def _wait_and_verify(
-        self, 
-        cmd: str, 
+        self,
+        cmd: str,
         on_result: Callable[[CommandResult], bool],
         timeout: int = 10,
-        interval: float = 0.5
+        interval: float = 0.5,
     ) -> bool:
-
         elapsed = 0
         while elapsed < timeout:
             try:
@@ -274,18 +362,20 @@ class Sandbox(SandboxBase):
                     return True
             except CommandExitException:
                 continue
-            
+
             time.sleep(interval)
             elapsed += interval
 
         return False
-    
+
     def _start_xfce4(self):
         """
         Start xfce4 session if logged out or not running.
         """
         if self._last_xfce4_pid is None or "[xfce4-session] <defunct>" in (
-            self.commands.run(f"ps aux | grep {self._last_xfce4_pid} | grep -v grep | head -n 1").stdout.strip()
+            self.commands.run(
+                f"ps aux | grep {self._last_xfce4_pid} | grep -v grep | head -n 1"
+            ).stdout.strip()
         ):
             self._last_xfce4_pid = self.commands.run(
                 "startxfce4", background=True, timeout=0
@@ -376,7 +466,7 @@ class Sandbox(SandboxBase):
     def move_mouse(self, x: int, y: int):
         """
         Move the mouse to the given coordinates.
-        
+
         :param x: The x coordinate.
         :param y: The y coordinate.
         """
@@ -393,7 +483,7 @@ class Sandbox(SandboxBase):
         Release the mouse button.
         """
         self.commands.run(f"xdotool mouseup {MOUSE_BUTTONS[button]}")
-        
+
     def get_cursor_position(self) -> tuple[int, int]:
         """
         Get the current cursor position.
@@ -402,17 +492,19 @@ class Sandbox(SandboxBase):
         :raises RuntimeError: If the cursor position cannot be determined
         """
         result = self.commands.run("xdotool getmouselocation")
-            
+
         groups = re_search(r"x:(\d+)\s+y:(\d+)", result.stdout)
         if not groups:
-            raise RuntimeError(f"Failed to parse cursor position from output: {result.stdout}")
-            
+            raise RuntimeError(
+                f"Failed to parse cursor position from output: {result.stdout}"
+            )
+
         x, y = groups.group(1), groups.group(2)
         if not x or not y:
             raise RuntimeError(f"Invalid cursor position values: x={x}, y={y}")
-            
+
         return int(x), int(y)
-        
+
     def get_screen_size(self) -> tuple[int, int]:
         """
         Get the current screen size.
@@ -421,29 +513,27 @@ class Sandbox(SandboxBase):
         :raises RuntimeError: If the screen size cannot be determined
         """
         result = self.commands.run("xrandr")
-            
+
         _match = re_search(r"(\d+x\d+)", result.stdout)
         if not _match:
-            raise RuntimeError(f"Failed to parse screen size from output: {result.stdout}")
-            
+            raise RuntimeError(
+                f"Failed to parse screen size from output: {result.stdout}"
+            )
+
         try:
             return tuple(map(int, _match.group(1).split("x")))  # type: ignore
         except (ValueError, IndexError) as e:
             raise RuntimeError(f"Invalid screen size format: {_match.group(1)}") from e
 
-    def write(self,        
-        text: str,
-        *,
-        chunk_size: int = 25,
-        delay_in_ms: int = 75
-    ) -> None:
+    def write(self, text: str, *, chunk_size: int = 25, delay_in_ms: int = 75) -> None:
         """
         Write the given text at the current cursor position.
-        
+
         :param text: The text to write.
         :param chunk_size: The size of each chunk of text to write.
         :param delay_in_ms: The delay between each chunk of text.
         """
+
         def break_into_chunks(text: str, n: int):
             for i in range(0, len(text), n):
                 yield text[i : i + n]
@@ -453,7 +543,7 @@ class Sandbox(SandboxBase):
                 f"xdotool type --delay {delay_in_ms} {quote_string(chunk)}"
             )
 
-    def press(self, key: Union[str,  list[str]]):
+    def press(self, key: Union[str, list[str]]):
         """
         Press a key.
 
@@ -504,7 +594,11 @@ class Sandbox(SandboxBase):
         """
         Get the window IDs of all windows for the given application.
         """
-        return self.commands.run(f"xdotool search --onlyvisible --class {application}").stdout.strip().split("\n")
+        return (
+            self.commands.run(f"xdotool search --onlyvisible --class {application}")
+            .stdout.strip()
+            .split("\n")
+        )
 
     def get_window_title(self, window_id: str) -> str:
         """
@@ -516,4 +610,6 @@ class Sandbox(SandboxBase):
         """
         Launch an application.
         """
-        self.commands.run(f"gtk-launch {application} {uri or ''}", background=True, timeout=0)
+        self.commands.run(
+            f"gtk-launch {application} {uri or ''}", background=True, timeout=0
+        )
