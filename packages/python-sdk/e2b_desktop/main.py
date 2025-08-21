@@ -257,6 +257,7 @@ class Sandbox(SandboxBase):
             **opts,
         )
 
+        sbx._display = display
         width, height = resolution or (1024, 768)
         sbx.commands.run(
             f"Xvfb {display} -ac -screen 0 {width}x{height}x24"
@@ -330,6 +331,7 @@ class Sandbox(SandboxBase):
             **opts,
         )
 
+        sbx._display = display
         width, height = resolution or (1024, 768)
         sbx.commands.run(
             f"Xvfb {display} -ac -screen 0 {width}x{height}x24"
