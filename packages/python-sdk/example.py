@@ -15,7 +15,7 @@ async def main():
 
     print("--> Sandbox creation time", end="")
     start_time = time.time()
-    desktop = Sandbox()
+    desktop = Sandbox.create()
     end_time = time.time()
     print(f": {end_time - start_time:.3f}s")
 

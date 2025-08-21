@@ -40,7 +40,7 @@ pip install e2b-desktop
 from e2b_desktop import Sandbox
 
 # Create a new desktop sandbox
-desktop = Sandbox()
+desktop = Sandbox.create()
 
 # Launch an application
 desktop.launch('google-chrome')  # or vscode, firefox, etc.
@@ -72,7 +72,7 @@ print('Stream URL:', desktop.stream.get_url(auth_key=auth_key))
 
 ```python
 from e2b_desktop import Sandbox
-desktop = Sandbox()
+desktop = Sandbox.create()
 
 # Start the stream
 desktop.stream.start()
@@ -89,7 +89,7 @@ desktop.stream.stop()
 
 ```python
 from e2b_desktop import Sandbox
-desktop = Sandbox()
+desktop = Sandbox.create()
 
 # Start the stream
 desktop.stream.start(
@@ -117,7 +117,7 @@ desktop.stream.stop()
 
 ```python
 from e2b_desktop import Sandbox
-desktop = Sandbox()
+desktop = Sandbox.create()
 
 # Get current (active) window ID
 window_id = desktop.get_current_window_id()
@@ -136,7 +136,7 @@ desktop.stream.stop()
 
 ```python
 from e2b_desktop import Sandbox
-desktop = Sandbox()
+desktop = Sandbox.create()
 
 desktop.double_click()
 desktop.left_click()
@@ -156,7 +156,7 @@ desktop.mouse_release("left") # Release the mouse button
 
 ```python
 from e2b_desktop import Sandbox
-desktop = Sandbox()
+desktop = Sandbox.create()
 
 # Write text at the current cursor position with customizable typing speed
 desktop.write("Hello, world!")  # Default: chunk_size=25, delay_in_ms=75
@@ -173,7 +173,7 @@ desktop.press(["ctrl", "c"]) # Key combination
 
 ```python
 from e2b_desktop import Sandbox
-desktop = Sandbox()
+desktop = Sandbox.create()
 
 # Get current (active) window ID
 window_id = desktop.get_current_window_id()
@@ -189,7 +189,7 @@ title = desktop.get_window_title(window_id)
 
 ```python
 from e2b_desktop import Sandbox
-desktop = Sandbox()
+desktop = Sandbox.create()
 
 # Take a screenshot and save it as "screenshot.png" locally
 image = desktop.screenshot()
@@ -202,7 +202,7 @@ with open("screenshot.png", "wb") as f:
 
 ```python
 from e2b_desktop import Sandbox
-desktop = Sandbox()
+desktop = Sandbox.create()
 
 # Open file with default application
 desktop.files.write("/home/user/index.js", "console.log('hello')") # First create the file
@@ -213,7 +213,7 @@ desktop.open("/home/user/index.js") # Then open it
 
 ```python
 from e2b_desktop import Sandbox
-desktop = Sandbox()
+desktop = Sandbox.create()
 
 # Launch the application
 desktop.launch('google-chrome')
@@ -223,7 +223,7 @@ desktop.launch('google-chrome')
 
 ```python
 from e2b_desktop import Sandbox
-desktop = Sandbox()
+desktop = Sandbox.create()
 
 # Run any bash command
 out = desktop.commands.run("ls -la /home/user")
@@ -234,7 +234,7 @@ print(out)
 
 ```python
 from e2b_desktop import Sandbox
-desktop = Sandbox()
+desktop = Sandbox.create()
 
 desktop.wait(1000) # Wait for 1 second
 ```

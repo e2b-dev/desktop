@@ -56,7 +56,7 @@ npm install @e2b/desktop
 from e2b_desktop import Sandbox
 
 # Create a new desktop sandbox
-desktop = Sandbox()
+desktop = Sandbox.create()
 
 # Launch an application
 desktop.launch('google-chrome')  # or vscode, firefox, etc.
@@ -122,7 +122,7 @@ console.log('Stream URL:', desktop.stream.getUrl({ authKey }))
 
 ```python
 from e2b_desktop import Sandbox
-desktop = Sandbox()
+desktop = Sandbox.create()
 
 # Start the stream
 desktop.stream.start()
@@ -167,7 +167,7 @@ await desktop.stream.stop()
 
 ```python
 from e2b_desktop import Sandbox
-desktop = Sandbox()
+desktop = Sandbox.create()
 
 # Start the stream
 desktop.stream.start(
@@ -220,7 +220,7 @@ await desktop.stream.stop()
 
 ```python
 from e2b_desktop import Sandbox
-desktop = Sandbox()
+desktop = Sandbox.create()
 
 # Get current (active) window ID
 window_id = desktop.get_current_window_id()
@@ -261,7 +261,7 @@ await desktop.stream.stop()
 
 ```python
 from e2b_desktop import Sandbox
-desktop = Sandbox()
+desktop = Sandbox.create()
 
 desktop.double_click()
 desktop.left_click()
@@ -304,7 +304,7 @@ await desktop.mouseRelease('left') // Release the mouse button
 
 ```python
 from e2b_desktop import Sandbox
-desktop = Sandbox()
+desktop = Sandbox.create()
 
 # Write text at the current cursor position with customizable typing speed
 desktop.write("Hello, world!")  # Default: chunk_size=25, delay_in_ms=75
@@ -341,7 +341,7 @@ await desktop.press(['ctrl', 'c']) // Key combination
 
 ```python
 from e2b_desktop import Sandbox
-desktop = Sandbox()
+desktop = Sandbox.create()
 
 # Get current (active) window ID
 window_id = desktop.get_current_window_id()
@@ -376,7 +376,7 @@ const title = await desktop.getWindowTitle(windowId)
 
 ```python
 from e2b_desktop import Sandbox
-desktop = Sandbox()
+desktop = Sandbox.create()
 
 # Take a screenshot and save it as "screenshot.png" locally
 image = desktop.screenshot()
@@ -402,7 +402,7 @@ fs.writeFileSync('screenshot.png', image)
 
 ```python
 from e2b_desktop import Sandbox
-desktop = Sandbox()
+desktop = Sandbox.create()
 
 # Open file with default application
 desktop.files.write("/home/user/index.js", "console.log('hello')") # First create the file
@@ -427,7 +427,7 @@ await desktop.open('/home/user/index.js') // Then open it
 
 ```python
 from e2b_desktop import Sandbox
-desktop = Sandbox()
+desktop = Sandbox.create()
 
 # Launch the application
 desktop.launch('google-chrome')
@@ -450,7 +450,7 @@ await desktop.launch('google-chrome')
 
 ```python
 from e2b_desktop import Sandbox
-desktop = Sandbox()
+desktop = Sandbox.create()
 
 # Run any bash command
 out = desktop.commands.run("ls -la /home/user")
@@ -475,7 +475,7 @@ console.log(out)
 
 ```python
 from e2b_desktop import Sandbox
-desktop = Sandbox()
+desktop = Sandbox.create()
 
 desktop.wait(1000) # Wait for 1 second
 ```

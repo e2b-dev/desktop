@@ -31,7 +31,7 @@ pip install e2b-desktop
 from e2b_desktop import Sandbox
 
 # Create a new desktop sandbox
-desktop = Sandbox()
+desktop = Sandbox.create()
 print('Desktop sandbox created', desktop.sandbox_id)
 
 # Launch an application

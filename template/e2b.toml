@@ -3,7 +3,7 @@
 
 # Python SDK
 # from e2b import Sandbox, AsyncSandbox
-# sandbox = Sandbox("desktop") # Sync sandbox
+# sandbox = Sandbox.create("desktop") # Sync sandbox
 # sandbox = await AsyncSandbox.create("desktop") # Async sandbox
 
 # JS SDK

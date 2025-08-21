@@ -44,7 +44,7 @@ def create_window(stream_url, width, height, command_queue):
 
 def main():
     print("> Starting desktop sandbox...")
-    desktop = Sandbox()
+    desktop = Sandbox.create()
     print(" - Desktop Sandbox started, ID:", desktop.sandbox_id)
 
     width, height = desktop.get_screen_size()
