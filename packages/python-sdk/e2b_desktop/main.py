@@ -205,6 +205,7 @@ class Sandbox(SandboxBase):
     default_template = "desktop"
     __vnc_server: _VNCServer
     _last_xfce4_pid: Optional[str] = None
+    _display: str
 
     @classmethod
     def create(
