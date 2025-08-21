@@ -216,7 +216,7 @@ class Sandbox(SandboxBase):
         timeout: Optional[int] = None,
         metadata: Optional[Dict[str, str]] = None,
         envs: Optional[Dict[str, str]] = None,
-        secure: Optional[bool] = None,
+        secure: bool = True,
         allow_internet_access: bool = True,
         **opts: Unpack[ApiParams],
     ) -> Self:
@@ -286,7 +286,7 @@ class Sandbox(SandboxBase):
         auto_pause: Optional[bool] = False,
         metadata: Optional[Dict[str, str]] = None,
         envs: Optional[Dict[str, str]] = None,
-        secure: Optional[bool] = None,
+        secure: bool = True,
         allow_internet_access: bool = True,
         **opts: Unpack[ApiParams],
     ) -> Self:
