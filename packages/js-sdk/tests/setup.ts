@@ -10,7 +10,8 @@ interface SandboxFixture {
 
 export const sandboxTest = base.extend<SandboxFixture>({
   sandbox: [
-    async ({ }, use) => {
+    // eslint-disable-next-line no-empty-pattern
+    async ({}, use) => {
       const sandbox = await Sandbox.create(template, { timeoutMs })
       try {
         await use(sandbox)

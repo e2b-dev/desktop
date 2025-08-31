@@ -49,7 +49,9 @@
     "dev": "tsup --watch",
     "test": "vitest run --disable-console-intercept",
     "example": "npx tsx example.mts",
-    "generate-ref": "./scripts/generate_sdk_ref.sh"
+    "generate-ref": "./scripts/generate_sdk_ref.sh",
+    "lint": "eslint src/ tests/",
+    "format": "prettier --write src/ tests/ example.mts"
   },
   "devDependencies": {
     "@types/node": "^22.13.9",

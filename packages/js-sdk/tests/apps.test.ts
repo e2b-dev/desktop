@@ -1,6 +1,4 @@
-import { expect } from 'vitest'
 import { sandboxTest } from './setup'
-
 
 sandboxTest('open with default app', async ({ sandbox }) => {
   // TODO: Implement

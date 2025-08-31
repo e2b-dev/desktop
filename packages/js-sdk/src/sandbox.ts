@@ -143,9 +143,9 @@ export interface SandboxBetaCreateOpts extends SandboxBetaCreateOptsBase {
 
 export class Sandbox extends SandboxBase {
   protected static override readonly defaultTemplate: string = 'desktop'
-  private lastXfce4Pid: number | null = null
   public display: string = ':0'
   public stream: VNCServer = new VNCServer(this)
+  private lastXfce4Pid: number | null = null
 
   /**
    * Use {@link Sandbox.create} to create a new Sandbox instead.
@@ -220,7 +220,10 @@ export class Sandbox extends SandboxBase {
       },
     }
 
-    const sbx = await super.create(template, sandboxOptsWithDisplay) as InstanceType<S>
+    const sbx = (await super.create(
+      template,
+      sandboxOptsWithDisplay
+    )) as InstanceType<S>
     await sbx._start(display, sandboxOptsWithDisplay)
 
     return sbx
@@ -282,7 +285,10 @@ export class Sandbox extends SandboxBase {
       },
     }
 
-    const sbx = await super.betaCreate(template, sandboxOptsWithDisplay) as InstanceType<S>
+    const sbx = (await super.betaCreate(
+      template,
+      sandboxOptsWithDisplay
+    )) as InstanceType<S>
     await sbx._start(display, sandboxOptsWithDisplay)
 
     return sbx
@@ -321,28 +327,6 @@ export class Sandbox extends SandboxBase {
     }
 
     return false
-  }
-
-  /**
-   * Start xfce4 session if logged out or not running.
-   */
-  private async startXfce4(): Promise<void> {
-    if (
-      this.lastXfce4Pid === null ||
-      (
-        await this.commands.run(
-          `ps aux | grep ${this.lastXfce4Pid} | grep -v grep | head -n 1`
-        )
-      ).stdout
-        .trim()
-        .includes('[xfce4-session] <defunct>')
-    ) {
-      const result = await this.commands.run('startxfce4', {
-        background: true,
-        timeoutMs: 0,
-      })
-      this.lastXfce4Pid = result.pid
-    }
   }
 
   /**
@@ -507,26 +491,6 @@ export class Sandbox extends SandboxBase {
     }
   }
 
-  private *breakIntoChunks(text: string, n: number): Generator<string> {
-    for (let i = 0; i < text.length; i += n) {
-      yield text.slice(i, i + n)
-    }
-  }
-
-  private quoteString(s: string): string {
-    if (!s) {
-      return "''"
-    }
-
-    if (!/[^\w@%+=:,./-]/.test(s)) {
-      return s
-    }
-
-    // use single quotes, and put single quotes into double quotes
-    // the string $'b is then quoted as '$'"'"'b'
-    return "'" + s.replace(/'/g, "'\"'\"'") + "'"
-  }
-
   /**
    * Write the given text at the current cursor position.
    * @param text - The text to write.
@@ -642,7 +606,7 @@ export class Sandbox extends SandboxBase {
     })
   }
 
-  protected async _start(display:string, opts?: SandboxOpts): Promise<void> {
+  protected async _start(display: string, opts?: SandboxOpts): Promise<void> {
     this.display = display
     this.lastXfce4Pid = null
     this.stream = new VNCServer(this)
@@ -650,11 +614,11 @@ export class Sandbox extends SandboxBase {
     const [width, height] = opts?.resolution ?? [1024, 768]
     await this.commands.run(
       `Xvfb ${display} -ac -screen 0 ${width}x${height}x24 ` +
-      `-retro -dpi ${opts?.dpi ?? 96} -nolisten tcp -nolisten unix`,
+        `-retro -dpi ${opts?.dpi ?? 96} -nolisten tcp -nolisten unix`,
       { background: true, timeoutMs: 0 }
     )
 
-    let hasStarted = await this.waitAndVerify(
+    const hasStarted = await this.waitAndVerify(
       `xdpyinfo -display ${display}`,
       (r: CommandResult) => r.exitCode === 0
     )
@@ -663,6 +627,48 @@ export class Sandbox extends SandboxBase {
     }
 
     await this.startXfce4()
+  }
+
+  /**
+   * Start xfce4 session if logged out or not running.
+   */
+  private async startXfce4(): Promise<void> {
+    if (
+      this.lastXfce4Pid === null ||
+      (
+        await this.commands.run(
+          `ps aux | grep ${this.lastXfce4Pid} | grep -v grep | head -n 1`
+        )
+      ).stdout
+        .trim()
+        .includes('[xfce4-session] <defunct>')
+    ) {
+      const result = await this.commands.run('startxfce4', {
+        background: true,
+        timeoutMs: 0,
+      })
+      this.lastXfce4Pid = result.pid
+    }
+  }
+
+  private *breakIntoChunks(text: string, n: number): Generator<string> {
+    for (let i = 0; i < text.length; i += n) {
+      yield text.slice(i, i + n)
+    }
+  }
+
+  private quoteString(s: string): string {
+    if (!s) {
+      return "''"
+    }
+
+    if (!/[^\w@%+=:,./-]/.test(s)) {
+      return s
+    }
+
+    // use single quotes, and put single quotes into double quotes
+    // the string $'b is then quoted as '$'"'"'b'
+    return "'" + s.replace(/'/g, "'\"'\"'") + "'"
   }
 }
 
@@ -709,47 +715,6 @@ class VNCServer {
   }
 
   /**
-   * Set the VNC command to start the VNC server.
-   */
-  private async getVNCCommand(windowId?: string): Promise<string> {
-    let pwdFlag = '-nopw'
-    if (this.novncAuthEnabled) {
-      // Create .vnc directory if it doesn't exist
-      await this.desktop.commands.run('mkdir -p ~/.vnc')
-      await this.desktop.commands.run(
-        `x11vnc -storepasswd ${this.password} ~/.vnc/passwd`
-      )
-      pwdFlag = '-usepw'
-    }
-
-    return (
-      `x11vnc -bg -display ${this.desktop.display} -forever -wait 50 -shared ` +
-      `-rfbport ${this.vncPort} ${pwdFlag} 2>/tmp/x11vnc_stderr.log` +
-      (windowId ? ` -id ${windowId}` : '')
-    )
-  }
-
-  private async waitForPort(port: number): Promise<boolean> {
-    return await this.desktop.waitAndVerify(
-      `netstat -tuln | grep ":${port} "`,
-      (r: CommandResult) => r.stdout.trim() !== ''
-    )
-  }
-
-  /**
-   * Check if the VNC server is running.
-   * @returns Whether the VNC server is running.
-   */
-  private async checkVNCRunning(): Promise<boolean> {
-    try {
-      const result = await this.desktop.commands.run('pgrep -x x11vnc')
-      return result.stdout.trim() !== ''
-    } catch (error) {
-      return false
-    }
-  }
-
-  /**
    * Get the URL to a web page with a stream of the desktop sandbox.
    * @param autoConnect - Whether to automatically connect to the server after opening the URL.
    * @param viewOnly - Whether to prevent user interaction through the client.
@@ -767,7 +732,7 @@ class VNCServer {
       throw new Error('Server is not running')
     }
 
-    let url = new URL(this.url)
+    const url = new URL(this.url)
     if (autoConnect) {
       url.searchParams.set('autoconnect', 'true')
     }
@@ -821,6 +786,47 @@ class VNCServer {
     if (this.novncHandle) {
       await this.novncHandle.kill()
       this.novncHandle = null
+    }
+  }
+
+  /**
+   * Set the VNC command to start the VNC server.
+   */
+  private async getVNCCommand(windowId?: string): Promise<string> {
+    let pwdFlag = '-nopw'
+    if (this.novncAuthEnabled) {
+      // Create .vnc directory if it doesn't exist
+      await this.desktop.commands.run('mkdir -p ~/.vnc')
+      await this.desktop.commands.run(
+        `x11vnc -storepasswd ${this.password} ~/.vnc/passwd`
+      )
+      pwdFlag = '-usepw'
+    }
+
+    return (
+      `x11vnc -bg -display ${this.desktop.display} -forever -wait 50 -shared ` +
+      `-rfbport ${this.vncPort} ${pwdFlag} 2>/tmp/x11vnc_stderr.log` +
+      (windowId ? ` -id ${windowId}` : '')
+    )
+  }
+
+  private async waitForPort(port: number): Promise<boolean> {
+    return await this.desktop.waitAndVerify(
+      `netstat -tuln | grep ":${port} "`,
+      (r: CommandResult) => r.stdout.trim() !== ''
+    )
+  }
+
+  /**
+   * Check if the VNC server is running.
+   * @returns Whether the VNC server is running.
+   */
+  private async checkVNCRunning(): Promise<boolean> {
+    try {
+      const result = await this.desktop.commands.run('pgrep -x x11vnc')
+      return result.stdout.trim() !== ''
+    } catch (error) {
+      return false
     }
   }
 }

@@ -2,47 +2,44 @@ import { config } from 'dotenv'
 
 config()
 import { Sandbox } from './dist'
-import { writeFileSync } from 'fs';
+import { writeFileSync } from 'fs'
 
+console.log('Starting desktop sandbox...')
 
-console.log("Starting desktop sandbox...")
+console.time('--> Sandbox creation time')
+const desktop = await Sandbox.create()
+console.timeEnd('--> Sandbox creation time')
 
-console.time('--> Sandbox creation time');
-const desktop = await Sandbox.create();
-console.timeEnd('--> Sandbox creation time');
-
-console.log("Desktop Sandbox started, ID:", desktop.sandboxId)
-console.log("Screen size:", await desktop.getScreenSize())
+console.log('Desktop Sandbox started, ID:', desktop.sandboxId)
+console.log('Screen size:', await desktop.getScreenSize())
 
 await desktop.stream.start({
-  requireAuth: true
+  requireAuth: true,
 })
 
 const authKey = await desktop.stream.getAuthKey()
-console.log("Stream URL:", desktop.stream.getUrl({ authKey }))
+console.log('Stream URL:', desktop.stream.getUrl({ authKey }))
 
-await new Promise(resolve => setTimeout(resolve, 5000));
+await new Promise((resolve) => setTimeout(resolve, 5000))
 
 console.log("Moving mouse to 'Applications' and clicking...")
 await desktop.moveMouse(100, 100)
 await desktop.leftClick()
-console.log("Cursor position:", await desktop.getCursorPosition())
+console.log('Cursor position:', await desktop.getCursorPosition())
 
-await new Promise(resolve => setTimeout(resolve, 1000));
+await new Promise((resolve) => setTimeout(resolve, 1000))
 
-const screenshot = await desktop.screenshot("bytes")
-writeFileSync('1.png', Buffer.from(screenshot));
-
+const screenshot = await desktop.screenshot('bytes')
+writeFileSync('1.png', Buffer.from(screenshot))
 
 for (let i = 0; i < 20; i++) {
-  const x = Math.floor(Math.random() * 1024);
-  const y = Math.floor(Math.random() * 768);
-  await desktop.moveMouse(x, y);
-  await new Promise(resolve => setTimeout(resolve, 2000));
-  await desktop.rightClick();
+  const x = Math.floor(Math.random() * 1024)
+  const y = Math.floor(Math.random() * 768)
+  await desktop.moveMouse(x, y)
+  await new Promise((resolve) => setTimeout(resolve, 2000))
+  await desktop.rightClick()
   console.log('right clicked', i)
 }
-
 
 await desktop.stream.stop()
 await desktop.kill()
