@@ -40,9 +40,9 @@ def test_right_click(sandbox: Sandbox):
     cropped_image_2 = crop_around_point(post_click_image, cursor_pos)
 
     # Compare the cropped images
-    assert not images_are_equal(
-        cropped_image_1, cropped_image_2
-    ), "The image around the cursor did not change after right-click."
+    assert not images_are_equal(cropped_image_1, cropped_image_2), (
+        "The image around the cursor did not change after right-click."
+    )
 
 
 def test_screenshot(sandbox: Sandbox):
@@ -80,6 +80,6 @@ def test_write(sandbox: Sandbox):
     sandbox.open(text_file_path)
     # Add an assertion here, perhaps check if the content is correct
     content = sandbox.files.read(text_file_path)
-    assert (
-        content == "hello"
-    ), f"Expected content 'hello' in {text_file_path}, but got {content}"
+    assert content == "hello", (
+        f"Expected content 'hello' in {text_file_path}, but got {content}"
+    )
