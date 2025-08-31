@@ -21,7 +21,7 @@ pytest = "^7.4.0"
 python-dotenv = "^1.0.0"
 pytest-dotenv = "^0.5.2"
 pytest-xdist = "^3.6.1"
-black = "23.12.1"
+ruff = "^0.11.12"
 pydoc-markdown = "^4.8.2"
 
 [build-system]
