@@ -509,7 +509,9 @@ export class Sandbox extends SandboxBase {
 
     for (const chunk of chunks) {
       await this.commands.run(
-        `xdotool type --delay ${options.delayInMs} ${this.quoteString(chunk)}`
+        `xdotool type --delay ${options.delayInMs} -- ${this.quoteString(
+          chunk
+        )}`
       )
     }
   }

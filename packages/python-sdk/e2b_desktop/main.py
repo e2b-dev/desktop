@@ -543,7 +543,7 @@ class Sandbox(SandboxBase):
 
         for chunk in break_into_chunks(text, chunk_size):
             self.commands.run(
-                f"xdotool type --delay {delay_in_ms} {quote_string(chunk)}"
+                f"xdotool type --delay {delay_in_ms} -- {quote_string(chunk)}"
             )
 
     def press(self, key: Union[str, list[str]]):
