@@ -158,7 +158,7 @@ export class Sandbox extends SandboxBase {
   constructor(
     opts: Omit<SandboxOpts, 'timeoutMs' | 'metadata'> & {
       sandboxId: string
-      envdVersion?: string
+      envdVersion: string
     }
   ) {
     super(opts)
