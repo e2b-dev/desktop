@@ -95,10 +95,12 @@ template = (
                 dest="/usr/share/applications/google-chrome.desktop",
             ),
             CopyItem(
-                src="settings.json", dest="/home/user/.config/Code/User/settings.json",
+                src="settings.json",
+                dest="/home/user/.config/Code/User/settings.json",
             ),
             CopyItem(
-                src="wallpaper.png", dest="/usr/share/backgrounds/xfce/wallpaper.png",
+                src="wallpaper.png",
+                dest="/usr/share/backgrounds/xfce/wallpaper.png",
             ),
             CopyItem(
                 src="xfce4-desktop.xml",
