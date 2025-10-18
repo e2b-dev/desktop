@@ -61,7 +61,7 @@ template = (
         [
             "git clone --branch e2b-desktop https://github.com/e2b-dev/noVNC.git /opt/noVNC",
             "ln -s /opt/noVNC/vnc.html /opt/noVNC/index.html",
-            "git clone --branch v0.12.0 https://github.com/novnc/websockify ./noVNC/utils/websockify",
+            "git clone --branch v0.12.0 https://github.com/novnc/websockify ./opt/noVNC/utils/websockify",
         ]
     )
     # Install browsers and set up repositories

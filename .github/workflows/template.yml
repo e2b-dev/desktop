@@ -26,12 +26,12 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: '3.12'
 
       - name: Install and configure Poetry
         uses: snok/install-poetry@v1
         with:
-          version: 1.5.1
+          version: 2.1.1
           virtualenvs-create: true
           virtualenvs-in-project: true
           installer-parallel: true
@@ -54,7 +54,7 @@ jobs:
           poetry run python build_docker.py | docker buildx build \
             --platform linux/amd64 \
             --push \
-            --tag ${{ secrets.DOCKERHUB_USERNAME }}/desktop:latest files -f -
+            --tag ${{ secrets.DOCKERHUB_USERNAME }}/desktop:latest -f - files
 
       - name: Build E2B template
         run: poetry run python build_prod.py
