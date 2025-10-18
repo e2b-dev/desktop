@@ -1,8 +1,10 @@
-from e2b_template import Template, wait_for_process
+from e2b import CopyItem, Template
 
 template = (
-    Template()
+    Template(file_context_path="files")
     .from_image("ubuntu:22.04")
+    .set_user("root")
+    .set_workdir("/")
     .set_envs(
         {
             # Avoid system prompts
@@ -53,12 +55,13 @@ template = (
                 libgtk-3-bin",
         ]
     )
+    .pip_install("numpy")
     # Setup NoVNC and websockify
     .run_cmd(
         [
             "git clone --branch e2b-desktop https://github.com/e2b-dev/noVNC.git /opt/noVNC",
             "ln -s /opt/noVNC/vnc.html /opt/noVNC/index.html",
-            "git clone --branch v0.12.0 https://github.com/novnc/websockify /opt/noVNC/utils/websockify",
+            "git clone --branch v0.12.0 https://github.com/novnc/websockify ./noVNC/utils/websockify",
         ]
     )
     # Install browsers and set up repositories
@@ -70,7 +73,7 @@ template = (
             "wget -qO- https://packages.microsoft.com/keys/microsoft.asc | apt-key add -",
             'add-apt-repository -y "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"',
             "apt-get update",
-        ]
+        ],
     )
     # Install browsers and VS Code
     .apt_install(["firefox-esr", "google-chrome-stable", "code"])
@@ -82,48 +85,37 @@ template = (
             "mkdir -p /home/user/.config/Code/User",
             "mkdir -p /home/user/.config/xfce4/xfconf/xfce-perchannel-xml/",
             "update-desktop-database /usr/share/applications/",
-        ]
+        ],
     )
     # Copy all configuration files
-    .copy(
+    .copy_items(
         [
-            {
-                "src": "google-chrome.desktop",
-                "dest": "/usr/share/applications/google-chrome.desktop",
-                "forceUpload": False,
-            },
-            {
-                "src": "settings.json",
-                "dest": "/home/user/.config/Code/User/settings.json",
-                "forceUpload": False,
-            },
-            {
-                "src": "wallpaper.png",
-                "dest": "/usr/share/backgrounds/xfce/wallpaper.png",
-                "forceUpload": False,
-            },
-            {
-                "src": "xfce4-desktop.xml",
-                "dest": "/home/user/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml",
-                "forceUpload": False,
-            },
-            {
-                "src": "firefox-policies.json",
-                "dest": "/usr/lib/firefox-esr/distribution/policies.json",
-                "forceUpload": False,
-            },
-            {
-                "src": "firefox-autoconfig.js",
-                "dest": "/usr/lib/firefox-esr/defaults/pref/autoconfig.js",
-                "forceUpload": False,
-            },
-            {
-                "src": "firefox.cfg",
-                "dest": "/usr/lib/firefox-esr/firefox.cfg",
-                "forceUpload": False,
-            },
+            CopyItem(
+                src="google-chrome.desktop",
+                dest="/usr/share/applications/google-chrome.desktop",
+            ),
+            CopyItem(
+                src="settings.json", dest="/home/user/.config/Code/User/settings.json",
+            ),
+            CopyItem(
+                src="wallpaper.png", dest="/usr/share/backgrounds/xfce/wallpaper.png",
+            ),
+            CopyItem(
+                src="xfce4-desktop.xml",
+                dest="/home/user/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml",
+            ),
+            CopyItem(
+                src="firefox-policies.json",
+                dest="/usr/lib/firefox-esr/distribution/policies.json",
+            ),
+            CopyItem(
+                src="firefox-autoconfig.js",
+                dest="/usr/lib/firefox-esr/defaults/pref/autoconfig.js",
+            ),
+            CopyItem(src="firefox.cfg", dest="/usr/lib/firefox-esr/firefox.cfg"),
         ]
     )
-    # Set start command to launch the desktop environment
-    # .set_start_cmd("startxfce4", wait_for_process("xfce4-session"))
 )
+
+# Template with user and workdir set
+template_with_user_workdir = template.set_user("user").set_workdir("/home/user")
