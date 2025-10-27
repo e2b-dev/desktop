@@ -5,12 +5,11 @@ on:
     secrets:
       E2B_API_KEY:
         required: true
-      NPM_TOKEN:
-        required: true
       PYPI_TOKEN:
         required: true
 
 permissions:
+  id-token: write
   contents: write
 
 jobs:
@@ -46,16 +45,21 @@ jobs:
         with:
           version: 9.5
 
-      - name: Setup Node.js 20
-        uses: actions/setup-node@v3
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v6
         with:
-          node-version: '20.x'
+          node-version: "22.x"
           cache: pnpm
 
       - name: Configure pnpm
         run: |
           pnpm config set auto-install-peers true
           pnpm config set exclude-links-from-lockfile true
+
+      - name: Update npm
+        run: |
+          npm install -g npm@^11.6
+          npm --version
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -84,8 +88,8 @@ jobs:
           createGithubReleases: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+          NPM_TOKEN: "" # See https://github.com/changesets/changesets/issues/1152#issuecomment-3190884868
 
       - name: Update lock file
         run: pnpm i --no-link --no-frozen-lockfile
