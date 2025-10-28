@@ -17,52 +17,51 @@ template = (
         }
     )
     # Initial system setup and packages
-    # We are not using .apt_install() here because some packages have interactive prompts (keyboard layout setup, etc.)
-    .run_cmd(
+    .run_cmd("yes | unminimize")
+    .apt_install(
         [
-            "yes | unminimize",
-            "apt-get update",
-            "apt-get install -y \
-                xserver-xorg \
-                x11-xserver-utils \
-                xvfb \
-                x11-utils \
-                xauth \
-                xfce4 \
-                xfce4-goodies \
-                util-linux \
-                sudo \
-                curl \
-                git \
-                wget \
-                python3-pip \
-                xdotool \
-                scrot \
-                ffmpeg \
-                x11vnc \
-                net-tools \
-                netcat \
-                x11-apps \
-                libreoffice \
-                xpdf \
-                gedit \
-                xpaint \
-                tint2 \
-                galculator \
-                pcmanfm \
-                software-properties-common \
-                apt-transport-https \
-                libgtk-3-bin",
+            "xserver-xorg",
+            "x11-xserver-utils",
+            "xvfb",
+            "x11-utils",
+            "xauth",
+            "xfce4",
+            "xfce4-goodies",
+            "util-linux",
+            "sudo",
+            "curl",
+            "git",
+            "wget",
+            "python3-pip",
+            "xdotool",
+            "scrot",
+            "ffmpeg",
+            "x11vnc",
+            "net-tools",
+            "netcat",
+            "x11-apps",
+            "libreoffice",
+            "xpdf",
+            "gedit",
+            "xpaint",
+            "tint2",
+            "galculator",
+            "pcmanfm",
+            "software-properties-common",
+            "apt-transport-https",
+            "libgtk-3-bin",
         ]
     )
     .pip_install("numpy")
     # Setup NoVNC and websockify
-    .run_cmd(
-        [
-            "git clone --branch e2b-desktop https://github.com/e2b-dev/noVNC.git /opt/noVNC",
-            "ln -s /opt/noVNC/vnc.html /opt/noVNC/index.html",
-            "git clone --branch v0.12.0 https://github.com/novnc/websockify ./opt/noVNC/utils/websockify",
-        ]
+    .git_clone(
+        "https://github.com/e2b-dev/noVNC.git", "/opt/noVNC", branch="e2b-desktop"
+    )
+    .make_symlink("/opt/noVNC/vnc.html", "/opt/noVNC/index.html")
+    .git_clone(
+        "https://github.com/novnc/websockify.git",
+        "/opt/noVNC/utils/websockify",
+        branch="v0.12.0",
     )
     # Install browsers and set up repositories
     .run_cmd(
@@ -78,15 +77,14 @@ template = (
     # Install browsers and VS Code
     .apt_install(["firefox-esr", "google-chrome-stable", "code"])
     # Configure system settings
-    .run_cmd(
-        [
-            "ln -sf /usr/bin/xfce4-terminal.wrapper /etc/alternatives/x-terminal-emulator",
-            "update-alternatives --set x-www-browser /usr/bin/firefox-esr",
-            "mkdir -p /home/user/.config/Code/User",
-            "mkdir -p /home/user/.config/xfce4/xfconf/xfce-perchannel-xml/",
-            "update-desktop-database /usr/share/applications/",
-        ],
+    .make_symlink(
+        "/usr/bin/xfce4-terminal.wrapper", "/etc/alternatives/x-terminal-emulator",
+        force=True
     )
+    .run_cmd("update-alternatives --set x-www-browser /usr/bin/firefox-esr")
+    .make_dir("/home/user/.config/Code/User")
+    .make_dir("/home/user/.config/xfce4/xfconf/xfce-perchannel-xml/")
+    .run_cmd("update-desktop-database /usr/share/applications/")
     # Copy all configuration files
     .copy_items(
         [
