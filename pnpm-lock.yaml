@@ -36,8 +36,8 @@ importers:
   packages/js-sdk:
     dependencies:
       e2b:
-        specifier: ^2.8.3
-        version: 2.8.3
+        specifier: ^2.8.4
+        version: 2.8.4
     devDependencies:
       '@types/node':
         specifier: ^22.13.9
@@ -785,8 +785,8 @@ packages:
     resolution: {integrity: sha512-m/C+AwOAr9/W1UOIZUo232ejMNnJAJtYQjUbHoNTBNTJSvqzzDh7vnrei3o3r3m9blf6ZoDkvcw0VmozNRFJxg==}
     engines: {node: '>=12'}
 
-  e2b@2.8.3:
-    resolution: {integrity: sha512-P0hA5UceZ6HVfL9VDqQ0VG+IXZTy1K+FHek3xFkg7vSgcBm6wV9KG/YcvaoEdgiF+n1KS2TsIhunLs22jbrLyQ==}
+  e2b@2.8.4:
+    resolution: {integrity: sha512-InHLjwWYM3eWfr/YYP1NnbjZ6ZojydzfFnY1JMX2oDM5dxO6EPriqIw2ObFJPCwRsrpZelnHeMe19HeJJmVBvg==}
     engines: {node: '>=20'}
 
   eastasianwidth@0.2.0:
@@ -961,8 +961,8 @@ packages:
     resolution: {integrity: sha512-XxwI8EOhVQgWp6iDL+3b0r86f4d6AX6zSU55HfB4ydCEuXLXc5FcYeOu+nnGftS4TEju/11rt4KJPTMgbfmv4A==}
     engines: {node: '>=10.13.0'}
 
-  glob@10.4.5:
-    resolution: {integrity: sha512-7Bv8RF0k6xjo7d4A/PxYLbUCfb6c+Vpd2/mB2yRDlew7Jb5hEXiCD9ibfO7wpk8i4sevK6DFny9h7EYbM3/sHg==}
+  glob@10.5.0:
+    resolution: {integrity: sha512-DfXN8DfhJ7NH3Oe7cFmu3NCu1wKbkReJ8TorzSAFbSKrlNaQSKfIzqYqVY8zlbs2NLBbWpRiU52GX2PbaBVNkg==}
     hasBin: true
 
   glob@11.1.0:
@@ -2434,7 +2434,7 @@ snapshots:
 
   dotenv@16.5.0: {}
 
-  e2b@2.8.3:
+  e2b@2.8.4:
     dependencies:
       '@bufbuild/protobuf': 2.6.3
       '@connectrpc/connect': 2.0.0-rc.3(@bufbuild/protobuf@2.6.3)
@@ -2664,7 +2664,7 @@ snapshots:
     dependencies:
       is-glob: 4.0.3
 
-  glob@10.4.5:
+  glob@10.5.0:
     dependencies:
       foreground-child: 3.3.1
       jackspeak: 3.4.3
@@ -3196,7 +3196,7 @@ snapshots:
     dependencies:
       '@jridgewell/gen-mapping': 0.3.8
       commander: 4.1.1
-      glob: 10.4.5
+      glob: 10.5.0
       lines-and-columns: 1.2.4
       mz: 2.7.0
       pirates: 4.0.7
