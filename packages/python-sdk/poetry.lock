@@ -91,6 +91,18 @@ jupyter = ["ipython (>=7.8.0)", "tokenize-rt (>=3.2.0)"]
 uvloop = ["uvloop (>=0.15.2)"]
 
 [[package]]
+name = "bracex"
+version = "2.6"
+description = "Bash style brace expander."
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "bracex-2.6-py3-none-any.whl", hash = "sha256:0b0049264e7340b3ec782b5cb99beb325f36c3782a32e36e876452fd49a09952"},
+    {file = "bracex-2.6.tar.gz", hash = "sha256:98f1347cd77e22ee8d967a30ad4e310b233f7754dbf31ff3fceb76145ba47dc7"},
+]
+
+[[package]]
 name = "certifi"
 version = "2024.8.30"
 description = "Python package for providing Mozilla's CA Bundle."
@@ -375,14 +387,14 @@ test = ["black", "pytest"]
 
 [[package]]
 name = "e2b"
-version = "2.6.0"
+version = "2.10.2"
 description = "E2B SDK that give agents cloud environments"
 optional = false
 python-versions = "<4.0,>=3.9"
 groups = ["main"]
 files = [
-    {file = "e2b-2.6.0-py3-none-any.whl", hash = "sha256:74fbf9adf5d651862780d281e5f50cfb0286adbeaba6dceac86f26e5e1c0ad8c"},
-    {file = "e2b-2.6.0.tar.gz", hash = "sha256:3c6a8e315748d39efc2b0ff69aa47af548fd9da64be64f6797e5998db324e791"},
+    {file = "e2b-2.10.2-py3-none-any.whl", hash = "sha256:c719291fc9b3006b286809f6e820b803a1aab9a6f5ae4fe0140ead17efbce821"},
+    {file = "e2b-2.10.2.tar.gz", hash = "sha256:b77ecd620fd057b81a9610da18141811c003cc6f446c39c7ec7b9e9dc147d864"},
 ]
 
 [package.dependencies]
@@ -395,6 +407,7 @@ protobuf = ">=4.21.0"
 python-dateutil = ">=2.8.2"
 rich = ">=14.0.0"
 typing-extensions = ">=4.1.0"
+wcmatch = ">=10.1,<11.0"
 
 [[package]]
 name = "exceptiongroup"
@@ -1281,6 +1294,21 @@ files = [
 
 [package.extras]
 watchmedo = ["PyYAML (>=3.10)"]
+
+[[package]]
+name = "wcmatch"
+version = "10.1"
+description = "Wildcard/glob file name matcher."
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "wcmatch-10.1-py3-none-any.whl", hash = "sha256:5848ace7dbb0476e5e55ab63c6bbd529745089343427caa5537f230cc01beb8a"},
+    {file = "wcmatch-10.1.tar.gz", hash = "sha256:f11f94208c8c8484a16f4f48638a85d771d9513f4ab3f37595978801cb9465af"},
+]
+
+[package.dependencies]
+bracex = ">=2.1.1"
 
 [[package]]
 name = "wrapt"
