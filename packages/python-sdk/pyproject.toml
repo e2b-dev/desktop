@@ -10,7 +10,7 @@ repository = "https://github.com/e2b-dev/desktop/tree/main/packages/python-sdk"
 packages = [{ include = "e2b_desktop" }]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.10"
 
 e2b = "^2.6.0"
 requests = "^2.32.3"
