@@ -386,14 +386,14 @@ test = ["black", "pytest"]
 
 [[package]]
 name = "e2b"
-version = "2.10.2"
+version = "2.13.3"
 description = "E2B SDK that give agents cloud environments"
 optional = false
-python-versions = "<4.0,>=3.9"
+python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "e2b-2.10.2-py3-none-any.whl", hash = "sha256:c719291fc9b3006b286809f6e820b803a1aab9a6f5ae4fe0140ead17efbce821"},
-    {file = "e2b-2.10.2.tar.gz", hash = "sha256:b77ecd620fd057b81a9610da18141811c003cc6f446c39c7ec7b9e9dc147d864"},
+    {file = "e2b-2.13.3-py3-none-any.whl", hash = "sha256:1e161ceac28f7d835cdcfce9e53a4758e92c3f9eda69e759a626f9b6c27fab45"},
+    {file = "e2b-2.13.3.tar.gz", hash = "sha256:b93afdca7a2b2b37f5030d5d19778459e0dc04d8d65387c61f368fe6a975c951"},
 ]
 
 [package.dependencies]
