@@ -85,14 +85,14 @@ python-dotenv = "*"
 
 [[package]]
 name = "e2b"
-version = "2.13.2"
+version = "2.14.0"
 description = "E2B SDK that give agents cloud environments"
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "e2b-2.13.2-py3-none-any.whl", hash = "sha256:d91d5293bc0dd1917c72a6e6b35e86513607be2666a14ae18c57b921e7864de4"},
-    {file = "e2b-2.13.2.tar.gz", hash = "sha256:c0e81a3920091874fdf73c0b8f376b28766212db9f1cea5d8bd56a2e95d2436c"},
+    {file = "e2b-2.14.0-py3-none-any.whl", hash = "sha256:71e28f1a3d32fc7c318918c2c78322dd514146a1567ec32ce7d6199013e6afa8"},
+    {file = "e2b-2.14.0.tar.gz", hash = "sha256:2c7929e85ef93b5557c0c988c5755eab271facd5bad37aa454a54da7d6730c0d"},
 ]
 
 [package.dependencies]
