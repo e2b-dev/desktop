@@ -78,13 +78,22 @@ template = (
     .apt_install(["firefox-esr", "google-chrome-stable", "code"])
     # Configure system settings
     .make_symlink(
-        "/usr/bin/xfce4-terminal.wrapper", "/etc/alternatives/x-terminal-emulator",
-        force=True
+        "/usr/bin/xfce4-terminal.wrapper",
+        "/etc/alternatives/x-terminal-emulator",
+        force=True,
     )
     .run_cmd("update-alternatives --set x-www-browser /usr/bin/firefox-esr")
     .make_dir("/home/user/.config/Code/User")
     .make_dir("/home/user/.config/xfce4/xfconf/xfce-perchannel-xml/")
     .run_cmd("update-desktop-database /usr/share/applications/")
+    # Disable screen saver
+    .run_cmd(
+        [
+            "xset s off",
+            "xset s noblank",
+            "xset -dpms",
+        ]
+    )
     # Copy all configuration files
     .copy_items(
         [
