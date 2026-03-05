@@ -13,4 +13,4 @@ e2b = "^2.3.5"
 
 [tool.poetry.group.dev.dependencies]
 dotenv = "^0.9.9"
-ruff = "^0.12.5"
+ruff = "^0.15.0"
