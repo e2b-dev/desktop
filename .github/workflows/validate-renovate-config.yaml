@@ -15,4 +15,4 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Validate Renovate config
-        uses: suzuki-shunsuke/github-action-renovate-config-validator@v2.0.0
+        uses: suzuki-shunsuke/github-action-renovate-config-validator@v2.1.0
