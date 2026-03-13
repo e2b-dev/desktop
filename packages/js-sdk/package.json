@@ -49,7 +49,6 @@
     "dev": "tsup --watch",
     "test": "vitest run --disable-console-intercept",
     "example": "npx tsx example.mts",
-    "generate-ref": "./scripts/generate_sdk_ref.sh",
     "lint": "eslint src/ tests/",
     "format": "prettier --write src/ tests/ example.mts"
   },
@@ -58,8 +57,6 @@
     "dotenv": "^16.4.5",
     "tsup": "^8.3.5",
     "tsx": "^4.19.2",
-    "typedoc": "0.28.17",
-    "typedoc-plugin-markdown": "4.10.0",
     "typescript": "^5.6.3",
     "vitest": "^3.0.5"
   },
