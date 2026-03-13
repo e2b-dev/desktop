@@ -293,7 +293,4 @@ cython_debug/
 
 # VS Code
 
-# SDK reference artifacts
-sdk_ref/
-
 .ruff_cache/
