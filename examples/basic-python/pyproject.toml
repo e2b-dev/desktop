@@ -7,9 +7,9 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-e2b-desktop = "^1.2.0"
+e2b-desktop = "^2.3.1"
 pywebview = "^5.4"
-python-dotenv = "^1.0.1"
+python-dotenv = "^1.2.2"
 
 
 [build-system]
