@@ -34,7 +34,7 @@
     "package.json"
   ],
   "engines": {
-    "node": ">=20"
+    "node": ">=20.18.1"
   },
   "browserslist": [
     "defaults"
@@ -61,6 +61,6 @@
     "vitest": "^4.0.0"
   },
   "dependencies": {
-    "e2b": "^2.19.4"
+    "e2b": "^2.27.1"
   }
 }

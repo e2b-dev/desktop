@@ -1,7 +1,6 @@
 import {
   Sandbox as SandboxBase,
   SandboxOpts as SandboxOptsBase,
-  SandboxBetaCreateOpts as SandboxBetaCreateOptsBase,
   CommandHandle,
   CommandResult,
   CommandExitError,
@@ -116,31 +115,6 @@ export interface SandboxOpts extends SandboxOptsBase {
   display?: string
 }
 
-/**
- * Configuration options for the Sandbox environment.
- * @interface SandboxOpts
- * @extends {SandboxOptsBase}
- */
-export interface SandboxBetaCreateOpts extends SandboxBetaCreateOptsBase {
-  /**
-   * The screen resolution in pixels, specified as [width, height].
-   * @type {[number, number]}
-   */
-  resolution?: [number, number]
-
-  /**
-   * Dots per inch (DPI) setting for the display.
-   * @type {number}
-   */
-  dpi?: number
-
-  /**
-   * Display identifier.
-   * @type {string}
-   */
-  display?: string
-}
-
 export class Sandbox extends SandboxBase {
   protected static override readonly defaultTemplate: string = 'desktop'
   public display: string = ':0'
@@ -221,71 +195,6 @@ export class Sandbox extends SandboxBase {
     }
 
     const sbx = (await super.create(
-      template,
-      sandboxOptsWithDisplay
-    )) as InstanceType<S>
-    await sbx._start(display, sandboxOptsWithDisplay)
-
-    return sbx
-  }
-
-  /**
-   * Create a new sandbox from the default `desktop` sandbox template.
-   *
-   * @param opts connection options.
-   *
-   * @returns sandbox instance for the new sandbox.
-   *
-   * @example
-   * ```ts
-   * const sandbox = await Sandbox.create()
-   * ```
-   * @constructs Sandbox
-   */
-  static async betaCreate<S extends typeof Sandbox>(
-    this: S,
-    opts?: SandboxBetaCreateOpts
-  ): Promise<InstanceType<S>>
-  /**
-   * Create a new sandbox from the specified sandbox template.
-   *
-   * @param template sandbox template name or ID.
-   * @param opts connection options.
-   *
-   * @returns sandbox instance for the new sandbox.
-   *
-   * @example
-   * ```ts
-   * const sandbox = await Sandbox.create('<template-name-or-id>')
-   * ```
-   * @constructs Sandbox
-   */
-  static async betaCreate<S extends typeof Sandbox>(
-    this: S,
-    template: string,
-    opts?: SandboxBetaCreateOpts
-  ): Promise<InstanceType<S>>
-  static async betaCreate<S extends typeof Sandbox>(
-    this: S,
-    templateOrOpts?: SandboxBetaCreateOpts | string,
-    opts?: SandboxOpts
-  ): Promise<InstanceType<S>> {
-    const { template, sandboxOpts } =
-      typeof templateOrOpts === 'string'
-        ? { template: templateOrOpts, sandboxOpts: opts }
-        : { template: this.defaultTemplate, sandboxOpts: templateOrOpts }
-
-    // Add DISPLAY environment variable if not already set
-    const display = opts?.display || ':0'
-    const sandboxOptsWithDisplay = {
-      ...sandboxOpts,
-      envs: {
-        ...sandboxOpts?.envs,
-        DISPLAY: display,
-      },
-    }
-
-    const sbx = (await super.betaCreate(
       template,
       sandboxOptsWithDisplay
     )) as InstanceType<S>
