@@ -307,9 +307,7 @@ class Sandbox(SandboxBase):
                 f"ps aux | grep {self._last_xfce4_pid} | grep -v grep | head -n 1"
             ).stdout.strip()
         ):
-            xfce4_handle = self.commands.run(
-                "startxfce4", background=True, timeout=0
-            )
+            xfce4_handle = self.commands.run("startxfce4", background=True, timeout=0)
             self._last_xfce4_pid = xfce4_handle.pid
             xfce4_handle.disconnect()
 
