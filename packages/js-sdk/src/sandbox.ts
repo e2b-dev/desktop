@@ -467,9 +467,10 @@ export class Sandbox extends SandboxBase {
    * @param fileOrUrl - The file or URL to open.
    */
   async open(fileOrUrl: string): Promise<void> {
-    await this.commands.run(`xdg-open ${fileOrUrl}`, {
+    const handle = await this.commands.run(`xdg-open ${fileOrUrl}`, {
       background: true,
     })
+    await handle.disconnect()
   }
 
   /**
@@ -511,10 +512,14 @@ export class Sandbox extends SandboxBase {
    * @param uri - The URI to open in the application.
    */
   async launch(application: string, uri?: string): Promise<void> {
-    await this.commands.run(`gtk-launch ${application} ${uri ?? ''}`, {
-      background: true,
-      timeoutMs: 0,
-    })
+    const handle = await this.commands.run(
+      `gtk-launch ${application} ${uri ?? ''}`,
+      {
+        background: true,
+        timeoutMs: 0,
+      }
+    )
+    await handle.disconnect()
   }
 
   protected async _start(display: string, opts?: SandboxOpts): Promise<void> {
@@ -523,11 +528,12 @@ export class Sandbox extends SandboxBase {
     this.stream = new VNCServer(this)
 
     const [width, height] = opts?.resolution ?? [1024, 768]
-    await this.commands.run(
+    const xvfbHandle = await this.commands.run(
       `Xvfb ${display} -ac -screen 0 ${width}x${height}x24 ` +
         `-retro -dpi ${opts?.dpi ?? 96} -nolisten tcp -nolisten unix`,
       { background: true, timeoutMs: 0 }
     )
+    await xvfbHandle.disconnect()
 
     const hasStarted = await this.waitAndVerify(
       `xdpyinfo -display ${display}`,
@@ -559,6 +565,7 @@ export class Sandbox extends SandboxBase {
         timeoutMs: 0,
       })
       this.lastXfce4Pid = result.pid
+      await result.disconnect()
     }
   }
 

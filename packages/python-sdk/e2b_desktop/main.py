@@ -260,12 +260,13 @@ class Sandbox(SandboxBase):
 
         sbx._display = display
         width, height = resolution or (1024, 768)
-        sbx.commands.run(
+        xvfb_handle = sbx.commands.run(
             f"Xvfb {display} -ac -screen 0 {width}x{height}x24"
             f" -retro -dpi {dpi or 96} -nolisten tcp -nolisten unix",
             background=True,
             timeout=0,
         )
+        xvfb_handle.disconnect()
 
         if not sbx._wait_and_verify(
             f"xdpyinfo -display {display}", lambda r: r.exit_code == 0
@@ -306,9 +307,11 @@ class Sandbox(SandboxBase):
                 f"ps aux | grep {self._last_xfce4_pid} | grep -v grep | head -n 1"
             ).stdout.strip()
         ):
-            self._last_xfce4_pid = self.commands.run(
+            xfce4_handle = self.commands.run(
                 "startxfce4", background=True, timeout=0
-            ).pid
+            )
+            self._last_xfce4_pid = xfce4_handle.pid
+            xfce4_handle.disconnect()
 
     @property
     def stream(self) -> _VNCServer:
@@ -511,7 +514,8 @@ class Sandbox(SandboxBase):
 
         :param file_or_url: The file or URL to open.
         """
-        self.commands.run(f"xdg-open {file_or_url}", background=True)
+        handle = self.commands.run(f"xdg-open {file_or_url}", background=True)
+        handle.disconnect()
 
     def get_current_window_id(self) -> str:
         """
@@ -539,6 +543,7 @@ class Sandbox(SandboxBase):
         """
         Launch an application.
         """
-        self.commands.run(
+        handle = self.commands.run(
             f"gtk-launch {application} {uri or ''}", background=True, timeout=0
         )
+        handle.disconnect()
