@@ -1,6 +1,6 @@
 # E2B Desktop Sandbox - Open Source Virtual Computer for Computer Use
 
-E2B Desktop Sandbox is an open source secure virtual desktop ready for Computer Use. Powered by [E2B](https://e2b.dev).
+E2B Desktop Sandbox is an open source secure virtual desktop ready for Computer Use. Powered by [E2B](https://e2b.dev/?utm_source=github&utm_medium=referral&utm_campaign=readme&utm_content=desktop).
 
 Each sandbox is isolated from the others and can be customized with any dependencies you want.
 
@@ -27,11 +27,11 @@ Each sandbox is isolated from the others and can be customized with any dependen
 
 ## 🚀 Getting started
 
-The E2B Desktop Sandbox is built on top of [E2B Sandbox](https://e2b.dev/docs).
+The E2B Desktop Sandbox is built on top of [E2B Sandbox](https://e2b.dev/docs?utm_source=github&utm_medium=referral&utm_campaign=readme&utm_content=desktop).
 
 ### 1. Get E2B API key
 
-Sign up at [E2B](https://e2b.dev) and get your API key.
+Sign up at [E2B](https://e2b.dev/?utm_source=github&utm_medium=referral&utm_campaign=readme&utm_content=desktop) and get your API key.
 Set environment variable `E2B_API_KEY` with your API key.
 
 ### 2. Install SDK
