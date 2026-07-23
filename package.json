@@ -23,7 +23,7 @@
   "pnpm": {
     "overrides": {
       "postcss": "^8.5.10",
-      "vite": "^7.3.2",
+      "vite": "^7.3.5",
       "yaml": "^2.8.3",
       "flatted": "^3.4.2",
       "minimatch@3": "^3.1.3",
