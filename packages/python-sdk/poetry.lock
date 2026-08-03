@@ -225,14 +225,14 @@ files = [
 
 [[package]]
 name = "e2b"
-version = "2.35.0"
+version = "2.36.0"
 description = "E2B SDK that give agents cloud environments"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "e2b-2.35.0-py3-none-any.whl", hash = "sha256:f8fe8bc9415f0237c6dd4d11cba32741174f3610fad32f0087c6e0052deb7275"},
-    {file = "e2b-2.35.0.tar.gz", hash = "sha256:c72c7c9905b7c8b7733e35fd2ccae0071cecaf160339bf77389cacbf60a967a5"},
+    {file = "e2b-2.36.0-py3-none-any.whl", hash = "sha256:0f3ab9f49e33d1f8cda70669e43e5a7550403649b0ff2960af6b3478154863c3"},
+    {file = "e2b-2.36.0.tar.gz", hash = "sha256:136fefc38b4b942a5ed7c80e4dad83e1b0962468edc7b1b1cac5aace8bd5f3a6"},
 ]
 
 [package.dependencies]
@@ -246,7 +246,7 @@ protobuf-py = ">=0.1.1,<0.2"
 pyqwest = ">=0.7.0,<0.8"
 python-dateutil = ">=2.8.2"
 rich = ">=14.0.0"
-typing-extensions = ">=4.1.0"
+typing-extensions = ">=4.10.0"
 wcmatch = ">=10.1,<11"
 
 [[package]]
