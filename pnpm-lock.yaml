@@ -50,8 +50,8 @@ importers:
   packages/js-sdk:
     dependencies:
       e2b:
-        specifier: ^2.27.1
-        version: 2.37.0
+        specifier: ^2.38.0
+        version: 2.38.0
     devDependencies:
       '@types/node':
         specifier: ^22.13.9
@@ -893,8 +893,8 @@ packages:
     resolution: {integrity: sha512-uBq4egWHTcTt33a72vpSG0z3HnPuIl6NqYcTrKEg2azoEyl2hpW0zqlxysq2pK9HlDIHyHyakeYaYnSAwd8bow==}
     engines: {node: '>=12'}
 
-  e2b@2.37.0:
-    resolution: {integrity: sha512-OWmTHwgQlPmTyCMUrcFReq9zhqsuwJn14p2AcCgYIcJifFnl1sJOrm/vZBCXe82SU7ZCgbzB3sIj7iFsZwewXw==}
+  e2b@2.38.0:
+    resolution: {integrity: sha512-l+3Quu3nI+BST9VVynFYiFhXowy7SxivyRKyvNAusrOnjgyTVKVGwi59PPntWLPgPSOkqEhWNM4vcLSg7E/s/A==}
     engines: {node: '>=20.18.1 <21 || >=22'}
 
   es-module-lexer@2.1.0:
@@ -2370,7 +2370,7 @@ snapshots:
 
   dotenv@16.6.1: {}
 
-  e2b@2.37.0:
+  e2b@2.38.0:
     dependencies:
       '@bufbuild/protobuf': 2.13.0
       '@connectrpc/connect': 2.1.2(@bufbuild/protobuf@2.13.0)
