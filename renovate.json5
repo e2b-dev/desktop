@@ -2,7 +2,12 @@
 // list of all presets: https://docs.renovatebot.com/presets-default/
 {
   $schema: 'https://docs.renovatebot.com/renovate-schema.json',
-  extends: ['config:recommended', ':automergeRequireAllStatusChecks'],
+  extends: [
+    'config:recommended',
+    ':automergeRequireAllStatusChecks',
+    // keep GitHub Actions pinned to commit SHAs (supply-chain hardening)
+    'helpers:pinGitHubActionDigests',
+  ],
   dependencyDashboard: true,
   // let it fly for now, we've got a lot to catch up on
   //  schedule: [
