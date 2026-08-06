@@ -47,7 +47,7 @@ jobs:
           virtualenvs-in-project: true
           installer-parallel: true
 
-      - uses: pnpm/action-setup@v3
+      - uses: pnpm/action-setup@v4
         with:
           version: ${{ env.TOOL_VERSION_PNPM }}
 
