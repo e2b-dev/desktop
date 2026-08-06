@@ -30,7 +30,7 @@ jobs:
           prefix: 'tool_version_'
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v4
         id: pnpm-install
         with:
           version: ${{ env.TOOL_VERSION_PNPM }}
@@ -78,7 +78,7 @@ jobs:
           prefix: 'tool_version_'
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v4
         id: pnpm-install
         with:
           version: ${{ env.TOOL_VERSION_PNPM }}

@@ -9,10 +9,18 @@
   //    "0 * * * *"
   //  ],
   timezone: 'UTC',
+  // Match `minimumReleaseAge` in pnpm-workspace.yaml — Renovate must not propose
+  // versions that pnpm would refuse to install.
+  minimumReleaseAge: '3 days',
   // Always squash PRs when automerging
   automergeType: 'pr',
   automergeStrategy: 'squash',
   packageRules: [
+    {
+      description: 'Our own package — no release-age delay, mirrors minimumReleaseAgeExclude in pnpm-workspace.yaml',
+      matchPackageNames: ['e2b'],
+      minimumReleaseAge: null,
+    },
     {
       description: 'Group and automerge patch updates after CI passes',
       matchUpdateTypes: ['patch'],
