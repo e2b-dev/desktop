@@ -3,8 +3,6 @@ name: Test Desktop SDK Packages
 on:
   workflow_call:
     secrets:
-      E2B_API_KEY:
-        required: true
       PYPI_TOKEN:
         required: true
 
