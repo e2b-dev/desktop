@@ -98,8 +98,24 @@ jobs:
 
           # `add -A`, not `commit -a`: `changeset version` writes each package's
           # CHANGELOG.md as a new file the first time, which `-a` would drop —
-          # which is why this repo has never committed one.
-          git add -A
+          # which is why this repo has never committed one. Scoped to the paths
+          # versioning touches (.changeset deletions, package.json, CHANGELOG.md,
+          # pyproject.toml via postVersion) rather than the whole tree, so an
+          # untracked file written by an earlier step — a dependency lifecycle
+          # script, a build — cannot ride along into a commit that gets pushed to
+          # main with release credentials. Directories, not explicit file lists,
+          # so a package added later is still covered.
+          git add -A -- .changeset packages
+
+          # The release commit is complete only because the lockfile does not move
+          # at release time, per the note above, so it is deliberately not staged.
+          # If it ever does move, the commit being tagged is missing part of the
+          # release: stop instead of tagging an inconsistent tree.
+          if ! git diff --quiet -- pnpm-lock.yaml; then
+            echo "::error::pnpm-lock.yaml changed while versioning. A cross-package dependency must use 'workspace:^' rather than a version range, or the release commit cannot be complete before publishing."
+            exit 1
+          fi
+
           if git diff --cached --quiet; then
             echo "::error::'changeset version' produced no changes, so there is no version bump to publish or tag."
             exit 1
