@@ -25,6 +25,9 @@ jobs:
         uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26 # v3.7.0
         with:
           token: ${{ steps.app-token.outputs.token }}
+          # Full history: the push step below can have to merge a branch that moved
+          # mid-release, and a depth-1 clone has no merge base to merge against.
+          fetch-depth: 0
 
       - name: Parse .tool-versions
         uses: wistia/parse-tool-versions@32f568a4ffd4bfa7720ebf93f171597d1ebc979a # v2.1.1
@@ -123,6 +126,18 @@ jobs:
         if: always()
         run: |
           if [ -z "$(git tag --points-at HEAD)" ]; then
+            if [ "${{ steps.release.outcome }}" = "success" ]; then
+              # Publish exited 0 having tagged nothing. Since a release only starts
+              # when a changeset actually releases a package, `changeset version`
+              # bumped something, so this means those versions are already on the
+              # registry — the tail of an earlier release whose branch push failed.
+              # Re-running cannot fix it: nothing is left to publish, so nothing
+              # will ever be tagged, and staying silent here would report success
+              # on every later push while main keeps the old versions.
+              echo "::error::Publish reported success but tagged nothing, so these versions are already published. A previous release most likely failed to push its version bump; land that commit manually rather than re-running."
+              exit 1
+            fi
+
             echo "Nothing was published; the version bump stays local and the changesets are intact for a re-run."
             exit 0
           fi
