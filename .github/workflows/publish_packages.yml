@@ -1,4 +1,4 @@
-name: Test Desktop SDK Packages
+name: Publish Packages
 
 on:
   workflow_call:
@@ -25,6 +25,9 @@ jobs:
         uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26 # v3.7.0
         with:
           token: ${{ steps.app-token.outputs.token }}
+          # Full history: the push step below can have to merge a branch that moved
+          # mid-release, and a depth-1 clone has no merge base to merge against.
+          fetch-depth: 0
 
       - name: Parse .tool-versions
         uses: wistia/parse-tool-versions@32f568a4ffd4bfa7720ebf93f171597d1ebc979a # v2.1.1
@@ -76,7 +79,51 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Commit new versions
+        # Commit before publishing, because `changeset publish` tags whatever HEAD
+        # it publishes from — tagging afterwards is what left every tag on the
+        # commit before its own version bump (SDK-298): `@e2b/desktop@2.3.1`
+        # points at a tree containing 2.3.0. Nothing in the tree references the
+        # artifacts about to be uploaded — no workspace package depends on another
+        # by registry range, so `changeset version` leaves pnpm-lock.yaml
+        # untouched and the release commit is already complete. Keep it that way:
+        # a cross-package dependency must use `workspace:^`, never a version
+        # range, or the lockfile would need a tarball this release has not
+        # uploaded yet. The commit stays local until something is actually
+        # published, so a publish that uploads nothing leaves the branch
+        # untouched and the changesets intact for a re-run.
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # `add -A`, not `commit -a`: `changeset version` writes each package's
+          # CHANGELOG.md as a new file the first time, which `-a` would drop —
+          # which is why this repo has never committed one. Scoped to the paths
+          # versioning touches (.changeset deletions, package.json, CHANGELOG.md,
+          # pyproject.toml via postVersion) rather than the whole tree, so an
+          # untracked file written by an earlier step — a dependency lifecycle
+          # script, a build — cannot ride along into a commit that gets pushed to
+          # main with release credentials. Directories, not explicit file lists,
+          # so a package added later is still covered.
+          git add -A -- .changeset packages
+
+          # The release commit is complete only because the lockfile does not move
+          # at release time, per the note above, so it is deliberately not staged.
+          # If it ever does move, the commit being tagged is missing part of the
+          # release: stop instead of tagging an inconsistent tree.
+          if ! git diff --quiet -- pnpm-lock.yaml; then
+            echo "::error::pnpm-lock.yaml changed while versioning. A cross-package dependency must use 'workspace:^' rather than a version range, or the release commit cannot be complete before publishing."
+            exit 1
+          fi
+
+          if git diff --cached --quiet; then
+            echo "::error::'changeset version' produced no changes, so there is no version bump to publish or tag."
+            exit 1
+          fi
+          git commit -m "[skip ci] Release new versions"
+
       - name: Release new versions
+        id: release
         uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1.9.0
         with:
           publish: pnpm run publish
@@ -86,14 +133,37 @@ jobs:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
           NPM_TOKEN: '' # See https://github.com/changesets/changesets/issues/1152#issuecomment-3190884868
 
-      - name: Update lock file
-        run: pnpm i --no-link --no-frozen-lockfile
-
-      - name: Commit new versions
+      - name: Push new versions
+        # Gate on the tags rather than on whether the publish step succeeded: they
+        # are what has to end up reachable. `changeset publish` tags at HEAD and the
+        # step above pushes them to origin, so if any exist — even from a publish
+        # that then failed partway — the commit they point at has to land, or they
+        # hang off no branch, which is the SDK-298 breakage this change prevents.
+        if: always()
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -am "[skip ci] Release new versions" || exit 0
-          git push
+          if [ -z "$(git tag --points-at HEAD)" ]; then
+            if [ "${{ steps.release.outcome }}" = "success" ]; then
+              # Publish exited 0 having tagged nothing. Since a release only starts
+              # when a changeset actually releases a package, `changeset version`
+              # bumped something, so this means those versions are already on the
+              # registry — the tail of an earlier release whose branch push failed.
+              # Re-running cannot fix it: nothing is left to publish, so nothing
+              # will ever be tagged, and staying silent here would report success
+              # on every later push while main keeps the old versions.
+              echo "::error::Publish reported success but tagged nothing, so these versions are already published. A previous release most likely failed to push its version bump; land that commit manually rather than re-running."
+              exit 1
+            fi
+
+            echo "Nothing was published; the version bump stays local and the changesets are intact for a re-run."
+            exit 0
+          fi
+
+          if ! git push; then
+            # A PR merged mid-release. Merge rather than rebase: the tags already
+            # point at this commit and rewriting it would strand them off the branch.
+            git fetch origin "${GITHUB_REF_NAME}"
+            git merge --no-edit FETCH_HEAD
+            git push
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
