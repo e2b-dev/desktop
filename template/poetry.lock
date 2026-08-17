@@ -101,14 +101,14 @@ python-dotenv = "*"
 
 [[package]]
 name = "e2b"
-version = "2.36.0"
+version = "2.39.1"
 description = "E2B SDK that give agents cloud environments"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "e2b-2.36.0-py3-none-any.whl", hash = "sha256:0f3ab9f49e33d1f8cda70669e43e5a7550403649b0ff2960af6b3478154863c3"},
-    {file = "e2b-2.36.0.tar.gz", hash = "sha256:136fefc38b4b942a5ed7c80e4dad83e1b0962468edc7b1b1cac5aace8bd5f3a6"},
+    {file = "e2b-2.39.1-py3-none-any.whl", hash = "sha256:71595fc48ebb00c549cef28b0a93fefff83407d43d21d7daa63e940614696a95"},
+    {file = "e2b-2.39.1.tar.gz", hash = "sha256:458ca8dc4c1ed39e66fed6dcefae02b4328b79c7f04b707622f259fcec392293"},
 ]
 
 [package.dependencies]
@@ -119,11 +119,11 @@ h2 = ">=4,<5"
 httpx = ">=0.27.0,<1.0.0"
 packaging = ">=24.1"
 protobuf-py = ">=0.1.1,<0.2"
-pyqwest = ">=0.7.0,<0.8"
+pyqwest = ">=0.9.0,<0.10"
 python-dateutil = ">=2.8.2"
 rich = ">=14.0.0"
 typing-extensions = ">=4.10.0"
-wcmatch = ">=10.1,<11"
+wcmatch = ">=10.1,<12"
 
 [[package]]
 name = "exceptiongroup"
@@ -392,55 +392,55 @@ windows-terminal = ["colorama (>=0.4.6)"]
 
 [[package]]
 name = "pyqwest"
-version = "0.7.0"
+version = "0.9.0"
 description = "A modern, high-performance HTTP client for Python and Rust."
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "pyqwest-0.7.0-cp310-abi3-macosx_10_12_x86_64.whl", hash = "sha256:7b2339f3b55ae179e0cb55bbd5792ae1c954d31f80de7b4dde0e95b03576b6be"},
-    {file = "pyqwest-0.7.0-cp310-abi3-macosx_11_0_arm64.whl", hash = "sha256:2159c7e2eaf2563cdadfda17314e2b1747c30603979bf73db8daef311247db82"},
-    {file = "pyqwest-0.7.0-cp310-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:0a826f1b492a7497f469c8467bd51faf582733654bb2bc9fcdd4fa502f3e6ca1"},
-    {file = "pyqwest-0.7.0-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:da43c7e86bee9e74ff474d4829cd398fb9220ff0d84d633094ea6797fdfe03a1"},
-    {file = "pyqwest-0.7.0-cp310-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:d1c71327c323a19dc90a0dafb1d68fb13f4f775a2498a26bf95f17165e64da9f"},
-    {file = "pyqwest-0.7.0-cp310-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:c002e0fc31a96f1c47986299710f49ed4551e4a912a7cdb69aba6fd94db6d544"},
-    {file = "pyqwest-0.7.0-cp310-abi3-win_amd64.whl", hash = "sha256:847e4468b5379a219b91a13dd3c92dd3b7b3d9f59af23e4c6776e663594cb241"},
-    {file = "pyqwest-0.7.0-cp312-cp312-macosx_10_12_x86_64.whl", hash = "sha256:4988fa1c368072886dce48f52fcbabe9f25784c6e189a9a6f2b42f6e9f383973"},
-    {file = "pyqwest-0.7.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:dfb61138c802c7317d840a274fa24f9d878301f693268e9186a9896452017a71"},
-    {file = "pyqwest-0.7.0-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:f6fdc0601590bdc547007828627082f0dc0e445e92d900dccb227e51898d7243"},
-    {file = "pyqwest-0.7.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:0f82c971810695f5fd7962859a2469616c83b7aca6664d8f147287ee5ff430cd"},
-    {file = "pyqwest-0.7.0-cp312-cp312-musllinux_1_2_aarch64.whl", hash = "sha256:9dc2f405803b94525ab030c01cdac7093bcc1a5da6802de3345a868a0f51b3da"},
-    {file = "pyqwest-0.7.0-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:537f71f97a533fa355d02c15ed9f0cc05fb8915996cb921caa87fe7310b457ee"},
-    {file = "pyqwest-0.7.0-cp312-cp312-win_amd64.whl", hash = "sha256:196aa73fb7eee4b6c052d6f4172a4321904a7208331f4322ccee3ee7d0adbc78"},
-    {file = "pyqwest-0.7.0-cp313-cp313-macosx_10_12_x86_64.whl", hash = "sha256:72d001892ed570df1dcc489ef8b0a03bc7abd4fbdca10625c358a87e66b226ad"},
-    {file = "pyqwest-0.7.0-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:03da0797bac5c2eb1a40f02afccd4b5aad5ad0d375bb993df2f5e0c692fc0c6c"},
-    {file = "pyqwest-0.7.0-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:837e18aef4490eed25b4194d49f16732ccf1abf2cdd0845e75d75d2a4428b98c"},
-    {file = "pyqwest-0.7.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:418e8c3a67ca6226bfb6147b8668203c74d9c872657117086f4c264a674d7980"},
-    {file = "pyqwest-0.7.0-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:31176abbbcbe6d03740967b5c0241deaa60b328792644cb2e317a34d6b076433"},
-    {file = "pyqwest-0.7.0-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:e21102f9c13234a0066d42bb5429dc5c311d7fd99401878837d9675a7f6e03b9"},
-    {file = "pyqwest-0.7.0-cp313-cp313-win_amd64.whl", hash = "sha256:ca19e96b5e902a6d35e18cee7f5e90612fca6ab169378d42242cdcb638578cee"},
-    {file = "pyqwest-0.7.0-cp314-cp314-macosx_10_12_x86_64.whl", hash = "sha256:4e4e79187c3e4ebd07d663d8dc7a7cba865c72020332e41807426a7e3526fda0"},
-    {file = "pyqwest-0.7.0-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:1bc2c569481ade1bc0b89b07daf1b49b20a1337a53207ffe0ef325260f509404"},
-    {file = "pyqwest-0.7.0-cp314-cp314-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:5ef1bfbdca9ec9c8a7b223268f5ef8d45694da7226929454b0cb40f2e3d1ddd5"},
-    {file = "pyqwest-0.7.0-cp314-cp314-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:e4c2f6a6830becfa1c5bb94aa169ad854da5749a95a440aee759932d5965c213"},
-    {file = "pyqwest-0.7.0-cp314-cp314-musllinux_1_2_aarch64.whl", hash = "sha256:0d11128ccc382f64fcdf92d3bce6be7191489c1b3a9a3f0dbdf89e55451638de"},
-    {file = "pyqwest-0.7.0-cp314-cp314-musllinux_1_2_x86_64.whl", hash = "sha256:5832373c7bcccfbc3bb79c44b592e0871631139a2ef5aef771b8fe2b7bd4301d"},
-    {file = "pyqwest-0.7.0-cp314-cp314-win_amd64.whl", hash = "sha256:7330070c4497e564007985716ac347cb9a7500eba5c9610500653a2ce4cfe86e"},
-    {file = "pyqwest-0.7.0-cp314-cp314t-macosx_10_12_x86_64.whl", hash = "sha256:02fd606a35be7803a770071f642a375e55df4c2025e49b10b859430f424c4492"},
-    {file = "pyqwest-0.7.0-cp314-cp314t-macosx_11_0_arm64.whl", hash = "sha256:a807835c6a0777f0cc57c321c78c7bf162f6354698844d78db6e03ba9edd83dc"},
-    {file = "pyqwest-0.7.0-cp314-cp314t-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:86d84871cb0a572700dece3a6c45c294721f655f3d0b85477333209b487ecef1"},
-    {file = "pyqwest-0.7.0-cp314-cp314t-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:005ddd2a777d30ca7ce4de12df1336760e14d46394ab56299a9e81626d78b991"},
-    {file = "pyqwest-0.7.0-cp314-cp314t-musllinux_1_2_aarch64.whl", hash = "sha256:ca02089249c292ab9c148fa86c06927701897090226a13e392a6ec53312380ea"},
-    {file = "pyqwest-0.7.0-cp314-cp314t-musllinux_1_2_x86_64.whl", hash = "sha256:da3bc117c1380e9577994da15b8236f7c3bb400111d6be4b57a9b2e4f30c9a79"},
-    {file = "pyqwest-0.7.0-cp314-cp314t-win_amd64.whl", hash = "sha256:a599ddac7ded32ed62d15ca90bc9c77652ba34b225cf17a404821cec92a189fa"},
-    {file = "pyqwest-0.7.0-pp311-pypy311_pp73-macosx_10_12_x86_64.whl", hash = "sha256:bebc51e3c9c6339d81964c6e60516a5f5c9fe793c82da57ef7c2d87a55741829"},
-    {file = "pyqwest-0.7.0-pp311-pypy311_pp73-macosx_11_0_arm64.whl", hash = "sha256:37623b492aea7ccd3b6cfe3179110643d28c2cdc83c765aac3d207b4321995d2"},
-    {file = "pyqwest-0.7.0-pp311-pypy311_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:02ff96a7746de208a4b8c78abe780c413d66576146a4ec64efd348b0c8a8328c"},
-    {file = "pyqwest-0.7.0-pp311-pypy311_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:fd2e9bfa81198db7023202962a94920986a9a3dd12fe2f9d310f0cfcdddc092c"},
-    {file = "pyqwest-0.7.0-pp311-pypy311_pp73-musllinux_1_2_aarch64.whl", hash = "sha256:e1548708dbeb29a60db199c70b9e93733d6b334e7efa1dfa5e3846a4f890db6d"},
-    {file = "pyqwest-0.7.0-pp311-pypy311_pp73-musllinux_1_2_x86_64.whl", hash = "sha256:4bb3cf0975ee829b6c76e1c42f01863122ce71b1a952e507e260a9d29eb9b183"},
-    {file = "pyqwest-0.7.0-pp311-pypy311_pp73-win_amd64.whl", hash = "sha256:2ea1ce4d630c92cb2cc6b3bf91ada0053b051dfd5c0662d89957ebd829cfdcce"},
-    {file = "pyqwest-0.7.0.tar.gz", hash = "sha256:ac65f2243f3e814e7f4aad3f2fcfe78f89aad2de2a825eaaabf4c102f1937843"},
+    {file = "pyqwest-0.9.0-cp310-abi3-macosx_10_12_x86_64.whl", hash = "sha256:517d2eb295d56ef1530cebe0cf290a66fa199c57955bd1c5f1dc592240fbb7d6"},
+    {file = "pyqwest-0.9.0-cp310-abi3-macosx_11_0_arm64.whl", hash = "sha256:408dc692835363b6824bee61ee9e4c9a5bba9c08d75b903f82f9a802e41d1b30"},
+    {file = "pyqwest-0.9.0-cp310-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:e1abf1ab3a0c1b545651ab37a643acc7909c4e7644a63a2e4af36e3e230a0db5"},
+    {file = "pyqwest-0.9.0-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:9b02e5c9ce57e079eb3716c464d3818ad2573d7743483c39526ad77ee95af806"},
+    {file = "pyqwest-0.9.0-cp310-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:98bdaa30a3a8d8c71506a33c084e485a243fbf51e77130bb39e0f249dd116142"},
+    {file = "pyqwest-0.9.0-cp310-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:10eba84f9d8512d23bd16dd60b1c77dab956470361559214981dda065df4ad1a"},
+    {file = "pyqwest-0.9.0-cp310-abi3-win_amd64.whl", hash = "sha256:af4e859800b02cd1fcdd898af26a881c4a8ce9520f71f6cb0a5403523d2cbbdf"},
+    {file = "pyqwest-0.9.0-cp312-cp312-macosx_10_12_x86_64.whl", hash = "sha256:abe322cc1b63947b493bc06028615e0d5de655928159227aab64f60a0eb0e27d"},
+    {file = "pyqwest-0.9.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:c6b2dc6a9c583859d031941e1041b8e711afe0ad4c130628207731cef2b1a486"},
+    {file = "pyqwest-0.9.0-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:551e47714da72a72939958029eb37a754cecd974344471c4a2038583a66a5396"},
+    {file = "pyqwest-0.9.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:3be3d38ccdab3077bf1cfe90c346ce927f9b49c56dcdf20e060f5f2502d01021"},
+    {file = "pyqwest-0.9.0-cp312-cp312-musllinux_1_2_aarch64.whl", hash = "sha256:45d9d424da878b22604799d1ce2a0a5df054924487ee5a851ad08025e2076e5c"},
+    {file = "pyqwest-0.9.0-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:e4420adcd2b756da706b31a04f095a521f6e440dab284b7a1b46c76e048c1f78"},
+    {file = "pyqwest-0.9.0-cp312-cp312-win_amd64.whl", hash = "sha256:25734bd9798bbfaa53c83d395649dd9ea9a791a64b9848734955cb78ad52c832"},
+    {file = "pyqwest-0.9.0-cp313-cp313-macosx_10_12_x86_64.whl", hash = "sha256:6e4c2afe6c7293d9e42cfdb0489b0b5f64002159c2dc9c45d9322c1b4ffb42cd"},
+    {file = "pyqwest-0.9.0-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:67f153b94dfbb9aeabc38f20a1bada1acfd9361bec12db86268bd951be35a154"},
+    {file = "pyqwest-0.9.0-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:b9942ffa243c8c2243e3ce04e3e3ec9b4c119346c963fd0051cd989f0defecf6"},
+    {file = "pyqwest-0.9.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:7f8f9c880c19826fead1838e12b042865b15df3ec844928cc74188a8b740f761"},
+    {file = "pyqwest-0.9.0-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:56040761f6ca7abb036c7d288863bf143a9b166d824d98a604908ef20c6906e0"},
+    {file = "pyqwest-0.9.0-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:02a51df744521e45eb5379bc325b91de4512ec64a9f4aba3248f9166ec4e5b88"},
+    {file = "pyqwest-0.9.0-cp313-cp313-win_amd64.whl", hash = "sha256:e9a0e3123aee446d5f6e57c43cae87b4dab4b1af3fa970d114d74d5d4b9d075c"},
+    {file = "pyqwest-0.9.0-cp314-cp314-macosx_10_12_x86_64.whl", hash = "sha256:fdab21bbedff4a21209135423f5f54f287a01dd6143cbd7aeab63d5d8c889654"},
+    {file = "pyqwest-0.9.0-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:21a04ddf4497ef3c7fe36cdc473c094999b7710005d38bd8a0dfd4a3feace12f"},
+    {file = "pyqwest-0.9.0-cp314-cp314-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:c8c51c1a27ea529fffab90c127a045f0dfe1abc54d5b9ad5f4165e954439c9b2"},
+    {file = "pyqwest-0.9.0-cp314-cp314-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:10f283ffc40a2774e0dc8fbb47e4a8f9f8a698a99feae3bf4ad75b340c98031b"},
+    {file = "pyqwest-0.9.0-cp314-cp314-musllinux_1_2_aarch64.whl", hash = "sha256:1f73d4a8e75b5860741fbd0623a0ce792a53336dbfec5f34736004acd5446843"},
+    {file = "pyqwest-0.9.0-cp314-cp314-musllinux_1_2_x86_64.whl", hash = "sha256:e34d55a53492b44b82b690c2b11957fc35e99ebab4db2e9bcb2a1e2621d71b62"},
+    {file = "pyqwest-0.9.0-cp314-cp314-win_amd64.whl", hash = "sha256:48c367150783f6866d0af43c209cc405f8287743d7b2472c7d757fda2478fd57"},
+    {file = "pyqwest-0.9.0-cp314-cp314t-macosx_10_12_x86_64.whl", hash = "sha256:10fae206270355c993b49c49bf9778995167f5efe591807d50a8e682921d71ea"},
+    {file = "pyqwest-0.9.0-cp314-cp314t-macosx_11_0_arm64.whl", hash = "sha256:5f475129fb792593222a9ce0fefbbc10bda1544a7411f3946d771c9a61c50e61"},
+    {file = "pyqwest-0.9.0-cp314-cp314t-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:78f6f676d349535cb094e8e3bcf33863238a142fb7dcc7afb9e61749e2351047"},
+    {file = "pyqwest-0.9.0-cp314-cp314t-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:f460f5fcdae8cc46e6a679128836f6cd47fbf4bf73e5c9d6ea868e4a90b2e7ee"},
+    {file = "pyqwest-0.9.0-cp314-cp314t-musllinux_1_2_aarch64.whl", hash = "sha256:cba6804151e973d27c99b9f02b3f0bcab7270c3f99725b508ada9c147365cabd"},
+    {file = "pyqwest-0.9.0-cp314-cp314t-musllinux_1_2_x86_64.whl", hash = "sha256:bc9dfeca326918d70a5368114de0fc627d9f64fafa36563ab484ae58ffe42c0d"},
+    {file = "pyqwest-0.9.0-cp314-cp314t-win_amd64.whl", hash = "sha256:384693adc0908f16324e5b508a3c25fb9a92b88f9bdf7ccb6820507db4a95888"},
+    {file = "pyqwest-0.9.0-pp311-pypy311_pp73-macosx_10_12_x86_64.whl", hash = "sha256:0c174d8ebde256c457f455dcdedf59446528d84874cb5967041be0d1bda05929"},
+    {file = "pyqwest-0.9.0-pp311-pypy311_pp73-macosx_11_0_arm64.whl", hash = "sha256:d5e56192b03bca7ec511c9af4ed80fa10fc1c1871d0ccfe49050632785b46099"},
+    {file = "pyqwest-0.9.0-pp311-pypy311_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:b3fa3c93638fc645c7c626fe83032f53972673581878bd85702842f41665ad6c"},
+    {file = "pyqwest-0.9.0-pp311-pypy311_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:869d1c630cbff38510207c5b57139f319acca21ed978f9ce6648fcd868df5fbd"},
+    {file = "pyqwest-0.9.0-pp311-pypy311_pp73-musllinux_1_2_aarch64.whl", hash = "sha256:a0bc2ba9b6d3103c6f0cce59cca9e2e294d1707bca435b471a1917db73010801"},
+    {file = "pyqwest-0.9.0-pp311-pypy311_pp73-musllinux_1_2_x86_64.whl", hash = "sha256:bfb04e3e91166fe6e4eecdcfccb0b2490da7629984b7988cfd4b11daa1dbb616"},
+    {file = "pyqwest-0.9.0-pp311-pypy311_pp73-win_amd64.whl", hash = "sha256:fbff11bbffb572c084ccd76048c40bd57976b255d34f59280e56626f556cfaeb"},
+    {file = "pyqwest-0.9.0.tar.gz", hash = "sha256:514dd0b37d7a1bcb978b5d6423d15f89cf7dcf8058ac2a37aa42cd30090de89e"},
 ]
 
 [package.dependencies]
