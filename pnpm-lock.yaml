@@ -50,8 +50,8 @@ importers:
   packages/js-sdk:
     dependencies:
       e2b:
-        specifier: ^2.27.1
-        version: 2.37.0
+        specifier: ^2.38.3
+        version: 2.38.3
     devDependencies:
       '@types/node':
         specifier: ^22.13.9
@@ -1076,8 +1076,8 @@ packages:
     resolution: {integrity: sha512-uBq4egWHTcTt33a72vpSG0z3HnPuIl6NqYcTrKEg2azoEyl2hpW0zqlxysq2pK9HlDIHyHyakeYaYnSAwd8bow==}
     engines: {node: '>=12'}
 
-  e2b@2.37.0:
-    resolution: {integrity: sha512-OWmTHwgQlPmTyCMUrcFReq9zhqsuwJn14p2AcCgYIcJifFnl1sJOrm/vZBCXe82SU7ZCgbzB3sIj7iFsZwewXw==}
+  e2b@2.38.3:
+    resolution: {integrity: sha512-0tOokTvlltpYGO4UAMNcoSSkFEn2VHAGaJtZsMVhPf5GMmdE9RNcfla/KwCpaE8ef7cFKpSXCs+UUDyE/r/fMQ==}
     engines: {node: '>=20.18.1 <21 || >=22'}
 
   es-module-lexer@2.1.0:
@@ -1763,8 +1763,8 @@ packages:
     resolution: {integrity: sha512-IDxfleLmmbSskfWSUATiN1nfn2rDuvnMOqb5CWR92iIfojA0Ud+ulOAAEQ57LPr9rWmsreUyf5lwyao+7GNNVw==}
     engines: {node: '>=20.18.1'}
 
-  undici@8.8.0:
-    resolution: {integrity: sha512-ubshXMXwF3MQIMF1y/WxZdNBnjEKeSg2wF5mcGUtU55YTw34tnVVpKRlLf7ruDXZ5344KokPVX4RBx1wJm64Bw==}
+  undici@8.10.0:
+    resolution: {integrity: sha512-HvltHd7avK13QIw/oLe4qoOLyoVSoafqJ2jYOrtMRBkbYT31eiBQ8O0ehRKZiEZCMEyLFQNIADpgCWC5fALvYQ==}
     engines: {node: '>=22.19.0'}
 
   universalify@0.1.2:
@@ -2636,7 +2636,7 @@ snapshots:
 
   dotenv@16.6.1: {}
 
-  e2b@2.37.0:
+  e2b@2.38.3:
     dependencies:
       '@bufbuild/protobuf': 2.13.0
       '@connectrpc/connect': 2.1.2(@bufbuild/protobuf@2.13.0)
@@ -2650,7 +2650,7 @@ snapshots:
       tar: 7.5.22
       undici: 7.29.0
     optionalDependencies:
-      undici8: undici@8.8.0
+      undici8: undici@8.10.0
 
   es-module-lexer@2.1.0: {}
 
@@ -3392,7 +3392,7 @@ snapshots:
 
   undici@7.29.0: {}
 
-  undici@8.8.0:
+  undici@8.10.0:
     optional: true
 
   universalify@0.1.2: {}
