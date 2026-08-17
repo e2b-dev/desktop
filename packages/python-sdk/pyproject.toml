@@ -21,7 +21,7 @@ pytest = "^9.0.3"
 python-dotenv = "^1.0.0"
 pytest-dotenv = "^0.5.2"
 pytest-xdist = "^3.6.1"
-ruff = "^0.15.0"
+ruff = "^0.16.0"
 
 [build-system]
 requires = ["poetry-core"]
