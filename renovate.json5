@@ -1,49 +1,20 @@
 // configuration options: https://docs.renovatebot.com/configuration-options/
-// list of all presets: https://docs.renovatebot.com/presets-default/
+//
+// Base config (config:recommended, automerge/squash, dependency dashboard,
+// patch-automerge, minor-PR, major-approval, GitHub Actions SHA-pinning) is
+// shared from e2b-dev/renovate.
 {
   $schema: 'https://docs.renovatebot.com/renovate-schema.json',
-  extends: [
-    'config:recommended',
-    ':automergeRequireAllStatusChecks',
-    // keep GitHub Actions pinned to commit SHAs (supply-chain hardening)
-    'helpers:pinGitHubActionDigests',
-  ],
-  dependencyDashboard: true,
-  // let it fly for now, we've got a lot to catch up on
-  //  schedule: [
-  //    "0 * * * *"
-  //  ],
-  timezone: 'UTC',
-  // Match `minimumReleaseAge` in pnpm-workspace.yaml — Renovate must not propose
-  // versions that pnpm would refuse to install.
+  extends: ['local>e2b-dev/renovate'],
+  // Keep in sync with `minimumReleaseAge` in pnpm-workspace.yaml (4320 minutes),
+  // otherwise Renovate proposes versions pnpm then refuses to install.
   minimumReleaseAge: '3 days',
-  // Always squash PRs when automerging
-  automergeType: 'pr',
-  automergeStrategy: 'squash',
   packageRules: [
     {
-      description: 'Our own package — no release-age delay, mirrors minimumReleaseAgeExclude in pnpm-workspace.yaml',
+      // Keep in sync with `minimumReleaseAgeExclude` in pnpm-workspace.yaml.
+      description: 'e2b is our own SDK, so it skips the minimum release age',
       matchPackageNames: ['e2b'],
       minimumReleaseAge: null,
     },
-    {
-      description: 'Group and automerge patch updates after CI passes',
-      matchUpdateTypes: ['patch'],
-      automerge: true,
-      groupName: 'patch-updates',
-    },
-    {
-      description: 'Create PRs for minor updates without automerge',
-      matchUpdateTypes: ['minor'],
-      automerge: false,
-    },
-    {
-      description: 'Require dashboard approval for major updates',
-      matchUpdateTypes: ['major'],
-      dependencyDashboardApproval: true,
-      automerge: false,
-    },
   ],
-  prConcurrentLimit: 3,
-  rebaseWhen: 'auto',
 }
