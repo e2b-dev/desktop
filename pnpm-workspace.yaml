@@ -8,6 +8,8 @@ minimumReleaseAge: 4320
 # Our own package — we trust it and want new releases immediately.
 minimumReleaseAgeExclude:
   - e2b
+  # Renovate security update: js-yaml@4.3.1
+  - js-yaml@4.3.1
 
 # pnpm 10 no longer runs dependency lifecycle scripts unless allowlisted here.
 onlyBuiltDependencies:
