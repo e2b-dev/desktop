@@ -1,3 +1,4 @@
+import logging
 import time
 from re import search as re_search
 from shlex import quote as quote_string
@@ -10,6 +11,10 @@ from e2b import (
     CommandResult,
     TimeoutException,
     CommandExitException,
+    SandboxIamOpts,
+    SandboxLifecycle,
+    SandboxNetworkOpts,
+    Volume,
 )
 from e2b.connection_config import ApiParams
 from typing_extensions import Self, Unpack
@@ -219,6 +224,11 @@ class Sandbox(SandboxBase):
         envs: Optional[Dict[str, str]] = None,
         secure: bool = True,
         allow_internet_access: bool = True,
+        network: Optional[SandboxNetworkOpts] = None,
+        iam: Optional[SandboxIamOpts] = None,
+        lifecycle: Optional[SandboxLifecycle] = None,
+        volume_mounts: Optional[Dict[str, Union[Volume, str]]] = None,
+        logger: Optional[logging.Logger] = None,
         **opts: Unpack[ApiParams],
     ) -> Self:
         """
@@ -255,6 +265,11 @@ class Sandbox(SandboxBase):
             envs=envs,
             secure=secure,
             allow_internet_access=allow_internet_access,
+            network=network,
+            iam=iam,
+            lifecycle=lifecycle,
+            volume_mounts=volume_mounts,
+            logger=logger,
             **opts,
         )
 
@@ -324,7 +339,7 @@ class Sandbox(SandboxBase):
     @overload
     def screenshot(
         self,
-        format: Literal["bytes"],
+        format: Literal["bytes"] = "bytes",
     ) -> bytearray:
         """
         Take a screenshot and return it as a bytearray.
