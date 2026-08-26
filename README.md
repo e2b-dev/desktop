@@ -6,6 +6,9 @@ Each sandbox is isolated from the others and can be customized with any dependen
 
 ![Desktop Sandbox](readme-assets/screenshot.png)
 
+> [!NOTE]
+> The `@e2b/desktop` and `e2b-desktop` SDK sources now live in the [E2B monorepo](https://github.com/e2b-dev/E2B), under `packages/desktop-js` and `packages/desktop-python`. Open SDK issues and pull requests there. This repository keeps the sandbox template and the examples.
+
 ## Examples
 
 **SDK Examples**
