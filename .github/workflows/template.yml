@@ -64,19 +64,7 @@ jobs:
             --push \
             --tag ${{ secrets.DOCKERHUB_USERNAME }}/desktop:latest -f - files
 
-      - name: Build E2B template (foxtrot / US)
+      - name: Build E2B template
         run: poetry run python build_prod.py
         env:
           E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
-
-      - name: Build E2B template (juliett / EU)
-        run: poetry run python build_prod.py
-        env:
-          E2B_API_KEY: ${{ secrets.E2B_API_KEY_JULIETT }}
-          E2B_DOMAIN: e2b-juliett.dev
-
-      - name: Build E2B template (tango / APAC)
-        run: poetry run python build_prod.py
-        env:
-          E2B_API_KEY: ${{ secrets.E2B_API_KEY_TANGO }}
-          E2B_DOMAIN: e2b-tango.dev
