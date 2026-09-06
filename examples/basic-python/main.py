@@ -9,7 +9,7 @@ import webview
 
 load_dotenv()
 
-window_frame_height = 29  # Additional px to take into the account the window border at the top
+window_frame_height = 29  # Additional px to take into account the window border at the top
 
 def move_around(desktop, width, height):
     for i in range(5):
