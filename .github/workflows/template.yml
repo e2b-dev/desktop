@@ -77,7 +77,7 @@ jobs:
       matrix:
         include:
           - cluster: foxtrot
-            domain: ''
+            domain: e2b.dev
             api_key_secret: E2B_API_KEY
           - cluster: juliett
             domain: e2b-juliett.dev
