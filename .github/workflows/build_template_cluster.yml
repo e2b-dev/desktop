@@ -1,0 +1,95 @@
+name: Build Desktop template (single cluster)
+
+# Builds the `desktop` template on ONE E2B cluster. Every cluster is a separate
+# tenancy with its own team, API key and template registry, so a template built
+# on one cluster does not exist on the others. Callers run this once per
+# cluster, each naming that cluster's secret statically: a dynamic
+# `secrets[...]` index would hand the job every organization and repository
+# secret instead of just the one it asked for.
+
+on:
+  workflow_call:
+    inputs:
+      cluster:
+        description: Cluster name, for job titles, the concurrency group and the summary.
+        required: true
+        type: string
+      E2B_DOMAIN:
+        description: E2B_DOMAIN for the cluster. Empty means the SDK default.
+        required: false
+        type: string
+        default: ''
+    secrets:
+      E2B_API_KEY:
+        description: API key for a team on this cluster.
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-template:
+    name: Build E2B template (${{ inputs.cluster }})
+    runs-on: ubuntu-22.04
+    # Builds on the same cluster serialize; different clusters run concurrently.
+    concurrency:
+      group: Template-${{ github.ref }}-${{ inputs.cluster }}
+      cancel-in-progress: false
+    defaults:
+      run:
+        working-directory: ./template
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26 # v3.7.0
+
+      - name: Check the cluster API key
+        env:
+          CLUSTER: ${{ inputs.cluster }}
+          E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
+        run: |
+          if [ -z "$E2B_API_KEY" ]; then
+            echo "::error::Missing API key secret for cluster: $CLUSTER" >&2
+            exit 1
+          fi
+
+      - name: Parse .tool-versions
+        uses: wistia/parse-tool-versions@32f568a4ffd4bfa7720ebf93f171597d1ebc979a # v2.1.1
+        id: tool-versions
+        with:
+          filename: '.tool-versions'
+          uppercase: 'true'
+          prefix: 'tool_version_'
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '${{ env.TOOL_VERSION_PYTHON }}'
+
+      - name: Install and configure Poetry
+        uses: snok/install-poetry@a783c322200f0519c7926aa6faa857c4e23e9263 # v1.4.2
+        with:
+          version: ${{ env.TOOL_VERSION_POETRY }}
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Build E2B template
+        run: poetry run python build_prod.py
+        env:
+          E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
+          E2B_DOMAIN: ${{ inputs.E2B_DOMAIN }}
+
+      - name: Summarize
+        env:
+          CLUSTER: ${{ inputs.cluster }}
+          E2B_DOMAIN: ${{ inputs.E2B_DOMAIN }}
+        run: |
+          {
+            echo "### Build target"
+            echo
+            echo "Cluster: $CLUSTER"
+            echo "Domain: ${E2B_DOMAIN:-(default)}"
+          } >> "$GITHUB_STEP_SUMMARY"

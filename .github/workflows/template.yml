@@ -5,19 +5,34 @@ on:
     paths:
       - 'template/**'
       - '.github/workflows/template.yml'
+      - '.github/workflows/build_template_cluster.yml'
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      target_environment:
+        description: Target cluster (`all` = every production cluster)
+        required: true
+        type: choice
+        default: all
+        options:
+          - all
+          - foxtrot
+          - juliett
+          - tango
 
 permissions:
   contents: read
 
 jobs:
-  buildAndPublish:
+  # The DockerHub image is cluster-independent, so it is only rebuilt on pushes.
+  buildAndPushImage:
+    if: ${{ github.event_name == 'push' }}
     defaults:
       run:
         working-directory: ./template
 
-    name: Build and Push Images
+    name: Build and Push Image to DockerHub
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout repository
@@ -64,7 +79,35 @@ jobs:
             --push \
             --tag ${{ secrets.DOCKERHUB_USERNAME }}/desktop:latest -f - files
 
-      - name: Build E2B template
-        run: poetry run python build_prod.py
-        env:
-          E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
+  # The template is built on every production cluster. Clusters are separate
+  # tenancies with separate template registries, so each needs its own build.
+  # One job per cluster, each naming its secret statically, so a build job only
+  # ever receives the one key it needs.
+  foxtrot:
+    name: foxtrot
+    if: ${{ github.event_name == 'push' || inputs.target_environment == 'all' || inputs.target_environment == 'foxtrot' }}
+    uses: ./.github/workflows/build_template_cluster.yml
+    with:
+      cluster: foxtrot
+    secrets:
+      E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
+
+  juliett:
+    name: juliett
+    if: ${{ github.event_name == 'push' || inputs.target_environment == 'all' || inputs.target_environment == 'juliett' }}
+    uses: ./.github/workflows/build_template_cluster.yml
+    with:
+      cluster: juliett
+      E2B_DOMAIN: e2b-juliett.dev
+    secrets:
+      E2B_API_KEY: ${{ secrets.E2B_JULIETT_API_KEY }}
+
+  tango:
+    name: tango
+    if: ${{ github.event_name == 'push' || inputs.target_environment == 'all' || inputs.target_environment == 'tango' }}
+    uses: ./.github/workflows/build_template_cluster.yml
+    with:
+      cluster: tango
+      E2B_DOMAIN: e2b-tango.dev
+    secrets:
+      E2B_API_KEY: ${{ secrets.E2B_TANGO_API_KEY }}
