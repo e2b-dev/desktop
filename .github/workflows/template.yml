@@ -5,21 +5,9 @@ on:
     paths:
       - 'template/**'
       - '.github/workflows/template.yml'
-      - '.github/workflows/build_template_cluster.yml'
     branches:
       - main
   workflow_dispatch:
-    inputs:
-      target_environment:
-        description: Target cluster (`all` = every production cluster)
-        required: true
-        type: choice
-        default: all
-        options:
-          - all
-          - foxtrot
-          - juliett
-          - tango
 
 permissions:
   contents: read
@@ -81,33 +69,69 @@ jobs:
 
   # The template is built on every production cluster. Clusters are separate
   # tenancies with separate template registries, so each needs its own build.
-  # One job per cluster, each naming its secret statically, so a build job only
-  # ever receives the one key it needs.
-  foxtrot:
-    name: foxtrot
-    if: ${{ github.event_name == 'push' || inputs.target_environment == 'all' || inputs.target_environment == 'foxtrot' }}
-    uses: ./.github/workflows/build_template_cluster.yml
-    with:
-      cluster: foxtrot
-    secrets:
-      E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
+  buildTemplate:
+    name: Build E2B template (${{ matrix.cluster }})
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - cluster: foxtrot
+            domain: ''
+            api_key_secret: E2B_API_KEY
+          - cluster: juliett
+            domain: e2b-juliett.dev
+            api_key_secret: E2B_JULIETT_API_KEY
+          - cluster: tango
+            domain: e2b-tango.dev
+            api_key_secret: E2B_TANGO_API_KEY
+    # Builds on the same cluster serialize; different clusters run concurrently.
+    concurrency:
+      group: Template-${{ github.ref }}-${{ matrix.cluster }}
+      cancel-in-progress: false
+    defaults:
+      run:
+        working-directory: ./template
+    env:
+      E2B_API_KEY: ${{ secrets[matrix.api_key_secret] }}
+      E2B_DOMAIN: ${{ matrix.domain }}
+    steps:
+      - name: Check the cluster API key
+        env:
+          CLUSTER: ${{ matrix.cluster }}
+          API_KEY_SECRET: ${{ matrix.api_key_secret }}
+        run: |
+          if [ -z "$E2B_API_KEY" ]; then
+            echo "::error::Missing secret $API_KEY_SECRET for cluster: $CLUSTER" >&2
+            exit 1
+          fi
 
-  juliett:
-    name: juliett
-    if: ${{ github.event_name == 'push' || inputs.target_environment == 'all' || inputs.target_environment == 'juliett' }}
-    uses: ./.github/workflows/build_template_cluster.yml
-    with:
-      cluster: juliett
-      E2B_DOMAIN: e2b-juliett.dev
-    secrets:
-      E2B_API_KEY: ${{ secrets.E2B_JULIETT_API_KEY }}
+      - name: Checkout repository
+        uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26 # v3.7.0
 
-  tango:
-    name: tango
-    if: ${{ github.event_name == 'push' || inputs.target_environment == 'all' || inputs.target_environment == 'tango' }}
-    uses: ./.github/workflows/build_template_cluster.yml
-    with:
-      cluster: tango
-      E2B_DOMAIN: e2b-tango.dev
-    secrets:
-      E2B_API_KEY: ${{ secrets.E2B_TANGO_API_KEY }}
+      - name: Parse .tool-versions
+        uses: wistia/parse-tool-versions@32f568a4ffd4bfa7720ebf93f171597d1ebc979a # v2.1.1
+        id: tool-versions
+        with:
+          filename: '.tool-versions'
+          uppercase: 'true'
+          prefix: 'tool_version_'
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '${{ env.TOOL_VERSION_PYTHON }}'
+
+      - name: Install and configure Poetry
+        uses: snok/install-poetry@a783c322200f0519c7926aa6faa857c4e23e9263 # v1.4.2
+        with:
+          version: ${{ env.TOOL_VERSION_POETRY }}
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Build E2B template
+        run: poetry run python build_prod.py
