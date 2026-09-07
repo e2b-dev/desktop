@@ -31,26 +31,6 @@ During development you can build the `desktop-dev` template instead:
 poetry run python build_dev.py
 ```
 
-### Clusters
-
-Every E2B cluster is a separate tenancy with its own team, API key and template
-registry, so a template built on one cluster does not exist on the others. CI
-(`.github/workflows/template.yml`, on pushes to `main` and on manual dispatch)
-builds the template on every production cluster, one job per cluster:
-
-| Cluster | Role | `E2B_DOMAIN` | API key secret |
-|---------|------|--------------|----------------|
-| foxtrot | US production (default) | unset | `E2B_API_KEY` |
-| juliett | EU production (europe-west1) | `e2b-juliett.dev` | `E2B_JULIETT_API_KEY` |
-| tango | APAC production (asia-southeast1) | `e2b-tango.dev` | `E2B_TANGO_API_KEY` |
-
-To build locally against a non-default cluster, set that cluster's `E2B_DOMAIN`
-and API key:
-
-```bash
-E2B_DOMAIN=e2b-juliett.dev E2B_API_KEY=<eu-key> poetry run python build_prod.py
-```
-
 If you want to customize the Desktop sandbox (e.g.: add a preinstalled package)
 you can do that by creating a [custom sandbox template](https://e2b.dev/docs/template/quickstart).
 
