@@ -11,5 +11,5 @@ dependencies = [
 [dependency-groups]
 dev = [
     "dotenv>=0.9.9,<0.10",
-    "ruff>=0.15.0,<0.16",
+    "ruff>=0.16.9,<0.17",
 ]
