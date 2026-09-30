@@ -10,7 +10,7 @@ This is the script CI and releases run.
 1. Install the build dependencies:
 
 ```bash
-poetry install
+uv sync
 ```
 
 2. Provide your credentials in `.env`:
@@ -22,13 +22,13 @@ E2B_API_KEY=e2b_***
 3. Build the template:
 
 ```bash
-poetry run python build_prod.py
+uv run python build_prod.py
 ```
 
 During development you can build the `desktop-dev` template instead:
 
 ```bash
-poetry run python build_dev.py
+uv run python build_dev.py
 ```
 
 If you want to customize the Desktop sandbox (e.g.: add a preinstalled package)

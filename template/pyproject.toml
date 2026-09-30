@@ -3,14 +3,13 @@ name = "e2b_desktop"
 version = "0.1.0"
 description = "E2B Desktop Template"
 readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "e2b>=2.20.3,<3",
+]
 
-[tool.poetry]
-package-mode = false
-
-[tool.poetry.dependencies]
-python = "^3.10"
-e2b = "^2.20.3"
-
-[tool.poetry.group.dev.dependencies]
-dotenv = "^0.9.9"
-ruff = "^0.15.0"
+[dependency-groups]
+dev = [
+    "dotenv>=0.9.9,<0.10",
+    "ruff>=0.15.0,<0.16",
+]
