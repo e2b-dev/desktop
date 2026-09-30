@@ -21,12 +21,12 @@ E2B_API_KEY="your_api_key"
 ### 3. Install dependencies
 
 ```bash
-poetry install
+uv sync
 ```
 
 ### 4. Run
 
 ```bash
-poetry run python main.py
+uv run python main.py
 ```
 
