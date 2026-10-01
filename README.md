@@ -11,6 +11,8 @@ Each sandbox is isolated from the others and can be customized with any dependen
 
 ## Examples
 
+- [Browser Use in E2B Desktop](./examples/browser-use-python) — give a coding agent a real browser without wiring screenshot, mouse, and keyboard tools by hand.
+
 **SDK Examples**
 
 - Basic Examples:
