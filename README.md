@@ -7,7 +7,7 @@ Each sandbox is isolated from the others and can be customized with any dependen
 ![Desktop Sandbox](readme-assets/screenshot.png)
 
 > [!NOTE]
-> The `@e2b/desktop` and `e2b-desktop` SDK sources now live in the [E2B monorepo](https://github.com/e2b-dev/E2B), under `packages/desktop-js` and `packages/desktop-python`. Open SDK issues and pull requests there. This repository keeps the sandbox template and the examples.
+> The `@e2b/desktop` and `e2b-desktop` SDK sources now live in the [E2B monorepo](https://github.com/e2b-dev/E2B), under `packages/desktop-js` and `packages/desktop-python`. Open SDK issues and pull requests there. The `desktop` sandbox template lives there too, under [`templates/desktop`](https://github.com/e2b-dev/E2B/tree/main/templates/desktop). This repository keeps the examples.
 
 ## Examples
 
@@ -495,8 +495,8 @@ await desktop.wait(1000) // Wait for 1 second
 ## Under the hood
 
 The desktop-like environment is based on Linux and [Xfce](https://www.xfce.org/) at the moment. We chose Xfce because it's a fast and lightweight environment that's also popular and actively supported. However, this Sandbox template is fully customizable and you can create your own desktop environment.
-Check out the sandbox template's code [here](./template/).
+Check out the sandbox template's code [here](https://github.com/e2b-dev/E2B/tree/main/templates/desktop).
 
 ## Customizing the sandbox template
 
-Need extra packages or a different desktop environment? You can build your own Desktop sandbox template. See the [template guide](./template/README.md) for a step-by-step walkthrough of creating, building, and using a custom template (as well as building the production `desktop` template).
+Need extra packages or a different desktop environment? You can build your own Desktop sandbox template. See the [template guide](https://github.com/e2b-dev/E2B/tree/main/templates/desktop/README.md) for a step-by-step walkthrough of creating, building, and using a custom template (as well as building the production `desktop` template).
