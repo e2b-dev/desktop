@@ -72,13 +72,10 @@ jobs:
         include:
           - cluster: foxtrot
             domain: e2b.dev
-            api_key_secret: E2B_API_KEY
           - cluster: juliett
             domain: e2b-juliett.dev
-            api_key_secret: E2B_JULIETT_API_KEY
           - cluster: tango
             domain: e2b-tango.dev
-            api_key_secret: E2B_TANGO_API_KEY
     # Builds on the same cluster serialize; different clusters run concurrently.
     concurrency:
       group: Template-${{ github.ref }}-${{ matrix.cluster }}
@@ -87,19 +84,8 @@ jobs:
       run:
         working-directory: ./template
     env:
-      E2B_API_KEY: ${{ secrets[matrix.api_key_secret] }}
       E2B_DOMAIN: ${{ matrix.domain }}
     steps:
-      - name: Check the cluster API key
-        env:
-          CLUSTER: ${{ matrix.cluster }}
-          API_KEY_SECRET: ${{ matrix.api_key_secret }}
-        run: |
-          if [ -z "$E2B_API_KEY" ]; then
-            echo "::error::Missing secret $API_KEY_SECRET for cluster: $CLUSTER" >&2
-            exit 1
-          fi
-
       - name: Checkout repository
         uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26 # v3.7.0
 
@@ -111,21 +97,25 @@ jobs:
           uppercase: 'true'
           prefix: 'tool_version_'
 
-      - name: Set up Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+      - name: Install uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
+          version: '${{ env.TOOL_VERSION_UV }}'
           python-version: '${{ env.TOOL_VERSION_PYTHON }}'
-
-      - name: Install and configure Poetry
-        uses: snok/install-poetry@a783c322200f0519c7926aa6faa857c4e23e9263 # v1.4.2
-        with:
-          version: ${{ env.TOOL_VERSION_POETRY }}
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-          installer-parallel: true
+          working-directory: ./template
 
       - name: Install dependencies
-        run: poetry install
+        run: uv sync --locked
 
       - name: Build E2B template
-        run: poetry run python build_prod.py
+        env:
+          CLUSTER: ${{ matrix.cluster }}
+          # Static secret references: a dynamic secrets[...] index would hand this
+          # job every organization and repository secret instead of one cluster key.
+          E2B_API_KEY: ${{ (matrix.cluster == 'foxtrot' && secrets.E2B_API_KEY) || (matrix.cluster == 'juliett' && secrets.E2B_JULIETT_API_KEY) || (matrix.cluster == 'tango' && secrets.E2B_TANGO_API_KEY) || '' }}
+        run: |
+          if [ -z "$E2B_API_KEY" ]; then
+            echo "::error::Missing API key secret for cluster: $CLUSTER" >&2
+            exit 1
+          fi
+          uv run python build_prod.py
