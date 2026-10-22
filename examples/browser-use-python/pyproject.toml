@@ -1,0 +1,12 @@
+[project]
+name = "browser-use-in-e2b-desktop"
+version = "0.1.0"
+description = "Run Browser Use inside an E2B Desktop Sandbox"
+requires-python = ">=3.11"
+dependencies = [
+  "e2b-desktop>=2.4.2,<3",
+  "python-dotenv>=1.1,<2",
+]
+
+[tool.uv]
+package = false
